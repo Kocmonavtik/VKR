@@ -48,11 +48,11 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
     {
         if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
             return new RedirectResponse($targetPath);
-        }
+        }// переход на предыдущую страницу до авторизации
 
         // For example:
         // return new RedirectResponse($this->urlGenerator->generate('some_route'));
-        return new RedirectResponse($this->urlGenerator->generate('about'));
+        return new RedirectResponse($this->urlGenerator->generate('app_about'));
         //throw new \Exception('TODO: provide a valid redirect inside '.__FILE__);
     }
     public function start(Request $request, AuthenticationException $authException = null): Response
