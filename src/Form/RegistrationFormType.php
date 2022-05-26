@@ -57,7 +57,7 @@ class RegistrationFormType extends AbstractType
                     ]),
                     new Length([
                         'min' => 6,
-                        'minMessage' => 'Your password should be at least {{ limit }} characters',
+                        'minMessage' => 'Минимальное число символов {{ limit }}',
                         // max length allowed by Symfony for security reasons
                         'max' => 4096,
                         'maxMessage' => 'Максимальное число символов - {{ limit }}',
@@ -67,8 +67,9 @@ class RegistrationFormType extends AbstractType
             ->add('gender', ChoiceType::class, [
                 'label' => 'Выберите пол',
                 'choices' => [
+                    'Не указано' => 'secret',
                     'Мужской' => 'male',
-                    'Женский' => 'female',
+                    'Женский' => 'female'
                 ],
             ])
             ->add('name', null, [

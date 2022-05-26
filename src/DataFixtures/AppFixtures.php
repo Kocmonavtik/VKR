@@ -25,7 +25,7 @@ class AppFixtures extends Fixture
         $user->setPassword($this->passwordHasher->hashPassword($user,'12345'));
         $user->setRoles(['ROLE_USER']);
         $user->setAvatar('');
-        $user->setGender('men');
+        $user->setGender('male');
         $user->setName('Kocmo');
         $manager->persist($user);
         $manager->flush();
