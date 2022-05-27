@@ -76,6 +76,11 @@ class AdditionalInfo
      */
     private $comments;
 
+    /**
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $image = [];
+
     public function __construct()
     {
         $this->statistics = new ArrayCollection();
@@ -289,6 +294,18 @@ class AdditionalInfo
                 $comment->setAdditionalInfo(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getImage(): ?array
+    {
+        return $this->image;
+    }
+
+    public function setImage(?array $image): self
+    {
+        $this->image = $image;
 
         return $this;
     }

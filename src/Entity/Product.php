@@ -30,11 +30,6 @@ class Product
     private $parameter = [];
 
     /**
-     * @ORM\Column(type="json")
-     */
-    private $images = [];
-
-    /**
      * @ORM\ManyToMany(targetEntity=Category::class,inversedBy="products")
      */
     private $category;
@@ -81,18 +76,6 @@ class Product
     public function setParameter(array $parameter): self
     {
         $this->parameter = $parameter;
-
-        return $this;
-    }
-
-    public function getImages(): ?array
-    {
-        return $this->images;
-    }
-
-    public function setImages(array $images): self
-    {
-        $this->images = $images;
 
         return $this;
     }

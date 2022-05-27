@@ -31,4 +31,5 @@ local.mk
 /public/build/
 npm-debug.log
 yarn-error.log
+/public/upload/
 ###< symfony/webpack-encore-bundle ###
