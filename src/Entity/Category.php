@@ -25,9 +25,19 @@ class Category
     private $name;
 
     /**
-     * @ORM\OneToMany(targetEntity=Product::class, mappedBy="category")
+     * @ORM\ManyToMany(targetEntity=Product::class, mappedBy="category")
      */
     private $products;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $xmlId;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Category::class)
+     */
+    private $parent;
 
     public function __construct()
     {
@@ -52,7 +62,7 @@ class Category
     }
 
     /**
-     * @return Collection<int, Product>
+     * @return Collection|Product[]
      */
     public function getProducts(): Collection
     {
@@ -63,7 +73,7 @@ class Category
     {
         if (!$this->products->contains($product)) {
             $this->products[] = $product;
-            $product->setCategory($this);
+            $product->addCategory($this);
         }
 
         return $this;
@@ -71,12 +81,33 @@ class Category
 
     public function removeProduct(Product $product): self
     {
-        if ($this->products->removeElement($product)) {
-            // set the owning side to null (unless already changed)
-            if ($product->getCategory() === $this) {
-                $product->setCategory(null);
-            }
+        if ($this->products->contains($product)) {
+            $this->products->removeElement($product);
+            $product->removeCategory($this);
         }
+        return $this;
+    }
+
+    public function getXmlId(): ?string
+    {
+        return $this->xmlId;
+    }
+
+    public function setXmlId(?string $xmlId): self
+    {
+        $this->xmlId = $xmlId;
+
+        return $this;
+    }
+
+    public function getParent(): ?self
+    {
+        return $this->parent;
+    }
+
+    public function setParent(?self $parent): self
+    {
+        $this->parent = $parent;
 
         return $this;
     }
