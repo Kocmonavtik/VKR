@@ -30,11 +30,6 @@ class Category
     private $products;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $xmlId;
-
-    /**
      * @ORM\ManyToOne(targetEntity=Category::class)
      */
     private $parent;
@@ -85,18 +80,6 @@ class Category
             $this->products->removeElement($product);
             $product->removeCategory($this);
         }
-        return $this;
-    }
-
-    public function getXmlId(): ?string
-    {
-        return $this->xmlId;
-    }
-
-    public function setXmlId(?string $xmlId): self
-    {
-        $this->xmlId = $xmlId;
-
         return $this;
     }
 

@@ -85,7 +85,6 @@ class AppFixtures extends Fixture
             $category = new Category();
             $category->setName(trim((string) $section));
             $xmlId = (string) $section->attributes()->id ?? null;
-            $category->setXmlId($xmlId);
             $categories[$xmlId] = $category;
             $manager->persist($category);
         }
@@ -119,6 +118,7 @@ class AppFixtures extends Fixture
             $categoryXmlId = (string) $xmlOffer->categoryId;
             $vendorXmlName = (string) $xmlOffer->vendor;
             //$paramXml = (string) $xmlOffer->param;
+
             //Запись в производителя
             if (!isset($manufacturers[$vendorXmlName])) {
                 $manufacturer = new Manufacturer();
@@ -142,9 +142,9 @@ class AppFixtures extends Fixture
                 foreach ($xmlOffer->param as $xmlParam) {
                     //$code= (string) $xmlParam->attributes()->code
                     // ?: \Transliterator::create('tr_Lower')->transliterate($xmlParam->attributes()->name);
-                    $stack[(string)$xmlParam->attributes()->name] = $xmlParam;
+                    $stack[(string) $xmlParam->attributes()->name] = (string)$xmlParam;
                 }
-                $jsonParameter = json_encode($stack);
+                $jsonParameter = json_encode($stack, JSON_UNESCAPED_UNICODE);
                 $product->setParameter([$jsonParameter]);
                 $manager->persist($product);
                 $products[$productXmlId] = $product;
@@ -163,7 +163,7 @@ class AppFixtures extends Fixture
                 $additionalInfo->setStatus('complete');
                 $stack = array();
                 foreach ($xmlOffer->picture as $picture) {
-                    $stack[] = (string)$this->savePicture($picture);
+                    $stack[] = (string)$this->savePicture((string)$picture);
                 }
                 $jsonImages = json_encode($stack);
                 $additionalInfo->setImage([$jsonImages]);
@@ -190,16 +190,15 @@ class AppFixtures extends Fixture
         if (empty($fileContent)) {
             return null;
         }
-
         $tempName = $filesystem->tempnam('/tmp', 'offer_picture_');
         $filesystem->dumpFile($tempName, $fileContent);
 
         $fileData = pathinfo($pictureUrl);
         $file = new UploadedFile($tempName, $fileData['basename']);
-        if ('jpeg' !== $file->guessExtension() || $file->getSize() > 10 * 1024 * 1024) {
+        if ('jpg' !== $file->guessExtension() || $file->getSize() > 10 * 1024 * 1024) {
             return null;
         }
-        $newFileName = sha1($pictureUrl . uniqid('', true)) . '.jpeg';
+        $newFileName = sha1($pictureUrl . uniqid('', true)) . '.jpg';
         $dir = substr($newFileName, 0, 2);
         if (!$filesystem->exists(self::UPLOAD_DIR . '/' . $dir)) {
             $filesystem->mkdir(self::UPLOAD_DIR . '/' . $dir);
