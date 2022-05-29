@@ -2,8 +2,10 @@
 
 namespace App\Controller;
 
+use App\Entity\Category;
 use App\Entity\Product;
 use App\Form\ProductType;
+use App\Repository\CategoryRepository;
 use App\Repository\ProductRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,10 +20,17 @@ class ProductController extends AbstractController
     /**
      * @Route("/", name="app_product_index", methods={"GET"})
      */
-    public function index(ProductRepository $productRepository): Response
+    public function index(ProductRepository $productRepository, CategoryRepository $categoryRepository): Response
     {
+        $items = [];
+        $categories = $categoryRepository->findBy(['parent' => null]);
+        foreach ($categories as $category) {
+            $subCategories = $categoryRepository->findBy(['parent' => $category->getId()]);
+            $items[] = [$category, $subCategories];
+        }
         return $this->render('product/index.html.twig', [
             'products' => $productRepository->findAll(),
+            'categories' => $items,
         ]);
     }
 
@@ -99,5 +108,24 @@ class ProductController extends AbstractController
         return $this->render('product/index.html.twig', [
             'products' => $products,
         ]);
+    }
+
+    /**
+     * @Route("/category/{id}", name="product_category", methods={"GET"})
+     *
+     */
+    public function ProductCategory(
+        Category $category,
+        ProductRepository $productRepository,
+        CategoryRepository $categoryRepository,
+        ParginatorInteface $parginator,
+    ) {
+        $items = [];
+        $categories = $categoryRepository->findBy(['parent' => null]);
+        foreach ($categories as $item) {
+            $subCategories = $categoryRepository->findBy(['parent' => $item->getId()]);
+            $items[] = [$item, $subCategories];
+        }
+
     }
 }

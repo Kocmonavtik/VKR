@@ -19,7 +19,7 @@
             <tr>
                 <td>{{ product.id }}</td>
                 <td>{{ product.name }}</td>
-                <td>{{ product.parameter ? product.parameter|json_encode : '' }}</td>
+                <td>{{ product.parameter ? product.parameter|json_encode(constant('JSON_UNESCAPED_UNICODE')) : '' }}</td>
                 <td>
                     <a href="{{ path('app_product_show', {'id': product.id}) }}">show</a>
                     <a href="{{ path('app_product_edit', {'id': product.id}) }}">edit</a>

@@ -16,22 +16,56 @@
     <header class="p-3 bg-dark text-white">
         <div class="container">
             <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
-                <a href="product" class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
-                    <svg class="bi me-2" width="40" height="32" role="img" aria-label="Agregator">
-                        <use xlink:href="#boostrap"></use>
-                    </svg>
+                <a href="{{ path('app_product_index') }}" class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
+                    <img src="{{ asset('upload/storeLogo/LogoSite.jpg') }}" class="bi me-2" width="50" height="50" role="img" aria-label="Agregator" alt="">
                 </a>
                 <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
                     <li>
-                        <a href="{{ path('app_product_index') }}" class="nav-link px-2 text-secondary">Каталог</a>
+                        {#<a href="{{ path('app_product_index') }}" class="nav-link px-2 text-white">Каталог</a>#}
+                        <button class="btn btn-toolbar d-inline-flex align-items-center rounded border-0 text-white"
+                                data-bs-toggle="collapse" data-bs-target="#catalog-collapse" aria-expanded="false">
+                            Каталог
+                        </button>
+                        <div class="collapse" id="catalog-collapse" style>
+                            <ul class=" btn-toggle list-unstyled fw-normal pb-1">
+                                <li>
+                                    {% for category in categories %}
+                                        {% if category[1] %}
+                                                <a class="dropdown-toggle link-dark d-inline-flex text-decoration-none rounded text-white" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    {{ category[0].name }}
+                                                </a>
+                                                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuLink">
+                                                    {% for subCategory in category[1] %}
+                                                        <a href="" class="dropdown-item link-dark d-inline-flex text-decoration-none rounded text-white">{{ subCategory.name }}</a>
+                                                    {% endfor %}
+                                                </ul>
+                                            {#<a href="" class="link-dark d-inline-flex text-decoration-none rounded text-white">{{ category[0].name }}</a>#}
+                                        {% else %}
+                                            <a href="" class="link-dark d-inline-flex text-decoration-none rounded text-white">{{ category[0].name }}</a>
+                                        {% endif %}
+                                    {% endfor %}
+                                </li>
+                            </ul>
+                        </div>
                     </li>
                 </ul>
                 <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" role="search" action="{{ path('search_product') }}" method="get">
                     <input type="search" class="form-control form-control-dark text-white bg-dark" placeholder="Поиск..." aria-label="Search" name="q">
                 </form>
                 <div class="text-end">
-                    <button type="button" class="btn btn-outline-light me-2">Авторизация</button>
-                    <button type="button" class="btn btn-warning">Регистрация</button>
+                    {% if app.user %}
+                    <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+                        <li>
+                            <p class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">Привет, {{app.user.name}} </p>
+                        </li>
+                        <li>
+                            <button type="button" class="btn btn-outline-light me-2" href="{{ path('app_login') }}">Профиль</button>
+                        </li>
+                    </ul>
+                    {% else %}
+                        <button type="button" class="btn btn-outline-light me-2" href="{{ path('app_login') }}">Авторизация</button>
+                        <button type="button" class="btn btn-warning" href="{{ path('app_register') }}">Регистрация</button>
+                    {% endif %}
                 </div>
             </div>
         </div>
