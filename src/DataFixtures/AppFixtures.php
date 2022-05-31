@@ -54,7 +54,7 @@ class AppFixtures extends Fixture
         $store->setCustomer($user);
         $store->setNameStore('Market');
         $store->setDescription('Маркетплейс');
-        $store->setLogo('/../../public/upload/storeLogo/img.png');
+        $store->setLogo('storeLogo/img.png');
         $store->setUrlStore('none');
         $manager->persist($store);
         $manager->flush();
@@ -109,9 +109,13 @@ class AppFixtures extends Fixture
         $additionalInfos = [];
         $output->writeln('offers processing...');
         $progresBar = new ProgressBar($output, min(count($xmlOffers), self::OFFERS_COUNT));
+
         foreach ($xmlOffers as $xmlOffer) {
             if (++$productCount > self::OFFERS_COUNT) {
                 break;
+            }
+            if(!$xmlOffer->param){
+                continue;
             }
             $offerXmlId = (string) $xmlOffer->attributes()->id;
             $productXmlId = (string) $xmlOffer->attributes()->productId;
@@ -138,21 +142,27 @@ class AppFixtures extends Fixture
                 $product = new Product();
                 $product->setName((string) $xmlOffer->name);
                 $product->setManufacturer($manufacturer);
+                $product->addCategory($categories[(string)$xmlOffer->categoryId]);
                 $stack = array();
                 foreach ($xmlOffer->param as $xmlParam) {
                     //$code= (string) $xmlParam->attributes()->code
                     // ?: \Transliterator::create('tr_Lower')->transliterate($xmlParam->attributes()->name);
                     $stack[(string) $xmlParam->attributes()->name] = (string)$xmlParam;
                 }
-                $jsonParameter = json_encode($stack, JSON_UNESCAPED_UNICODE);
-                $product->setParameter([$jsonParameter]);
+                //$jsonParameter = json_encode($stack, JSON_UNESCAPED_UNICODE);
+               // $items=json_decode($jsonParameter);;
+               /* foreach($items as $item){
+                    //var_dump(key($item));
+                    var_dump($item);
+                }*/
+                $product->setParameter($stack);
                 $manager->persist($product);
                 $products[$productXmlId] = $product;
             } else {
                 $product = $products[$productXmlId];
             }
             //Запись в дополнительную информацию
-            if (!isset($additionalInfos[$productXmlId])) {
+            //if (!isset($additionalInfos[$productXmlId])) {
                 $additionalInfo = new AdditionalInfo();
                 $additionalInfo->setUrl((string)$xmlOffer->url);
                 $additionalInfo->setStore($store);
@@ -161,17 +171,16 @@ class AppFixtures extends Fixture
                 $additionalInfo->setPrice((float)$xmlOffer->price);
                 $additionalInfo->setProduct($product);
                 $additionalInfo->setStatus('complete');
-                $stack = array();
-                foreach ($xmlOffer->picture as $picture) {
-                    $stack[] = (string)$this->savePicture((string)$picture);
-                }
-                $jsonImages = json_encode($stack);
-                $additionalInfo->setImage([$jsonImages]);
+                $stack = (string)$this->savePicture((string)$xmlOffer->picture);
+                //var_dump($stack);
+                //$jsonImages = json_encode($stack);
+                $additionalInfo->setImage([$stack]);
                 $manager->persist($additionalInfo);
                 $additionalInfos[$productXmlId] = $additionalInfo;
-            } else {
-                $additionalInfo = $additionalInfos[$productXmlId];
-            }
+            //} else {
+
+                //$additionalInfo = $additionalInfos[$productXmlId];
+            //}
             $progresBar->advance();
         }
         $progresBar->finish();
@@ -205,6 +214,7 @@ class AppFixtures extends Fixture
         }
         try {
             $filesystem->rename($tempName, self::UPLOAD_DIR . '/' . $dir . '/' . $newFileName);
+            $filesystem->chmod(self::UPLOAD_DIR . '/' . $dir . '/' . $newFileName, 0755);
         } catch (\Exception $exception) {
             return null;
         }

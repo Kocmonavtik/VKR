@@ -46,6 +46,13 @@ class ProductRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+    public function getProductsAdditionalsInfo()
+    {
+        return $this->createQueryBuilder('p')
+            ->leftJoin('p.additionalInfos', 'ai')
+            ->getQuery()
+            ->getResult();
+    }
 
 //    /**
 //     * @return Product[] Returns an array of Product objects

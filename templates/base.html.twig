@@ -36,12 +36,12 @@
                                                 </a>
                                                 <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuLink">
                                                     {% for subCategory in category[1] %}
-                                                        <a href="" class="dropdown-item link-dark d-inline-flex text-decoration-none rounded text-white">{{ subCategory.name }}</a>
+                                                        <a href="{{ path('product_category', {'id': subCategory.id, page: 1}) }}" class="dropdown-item link-dark d-inline-flex text-decoration-none rounded text-white">{{ subCategory.name }}</a>
                                                     {% endfor %}
                                                 </ul>
                                             {#<a href="" class="link-dark d-inline-flex text-decoration-none rounded text-white">{{ category[0].name }}</a>#}
                                         {% else %}
-                                            <a href="" class="link-dark d-inline-flex text-decoration-none rounded text-white">{{ category[0].name }}</a>
+                                            <a href="{{ path('product_category', {'id': category[0].id, page: 1}) }}" class="link-dark d-inline-flex text-decoration-none rounded text-white">{{ category[0].name }}</a>
                                         {% endif %}
                                     {% endfor %}
                                 </li>
@@ -63,8 +63,8 @@
                         </li>
                     </ul>
                     {% else %}
-                        <button type="button" class="btn btn-outline-light me-2" href="{{ path('app_login') }}">Авторизация</button>
-                        <button type="button" class="btn btn-warning" href="{{ path('app_register') }}">Регистрация</button>
+                        <a type="button" class="btn btn-outline-light me-2" href="{{ path('app_login') }}">Авторизация</a>
+                        <a type="button" class="btn btn-warning" href="{{ path('app_register') }}">Регистрация</a>
                     {% endif %}
                 </div>
             </div>

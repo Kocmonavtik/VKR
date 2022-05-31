@@ -14,9 +14,15 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use App\Service\SearchFunctions;
 
 class RegistrationController extends AbstractController
 {
+    private SearchFunctions $searchFunctions;
+    public function __construct(SearchFunctions $searchFunctions)
+    {
+        $this->searchFunctions = $searchFunctions;
+    }
     /**
      * @Route("/register", name="app_register")
      */
@@ -55,9 +61,11 @@ class RegistrationController extends AbstractController
                 $request
             );
         }
+        $items = $this->searchFunctions->getCategories();
 
         return $this->render('registration/register.html.twig', [
             'registrationForm' => $form->createView(),
+            'categories' => $items,
         ]);
     }
 }

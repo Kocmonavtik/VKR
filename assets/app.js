@@ -9,6 +9,6 @@
 import './styles/app.scss';
 
 import {Collapse} from "bootstrap";
-
+import {Carousel} from "bootstrap";
 // start the Stimulus application
 import './bootstrap';

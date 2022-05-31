@@ -5,32 +5,62 @@ namespace App\Controller;
 use App\Entity\Category;
 use App\Entity\Product;
 use App\Form\ProductType;
+use App\Repository\AdditionalInfoRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\ProductRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Knp\Component\Pager\PaginatorInterface;
+use App\Service\SearchFunctions;
 
 /**
  * @Route("/product")
  */
 class ProductController extends AbstractController
 {
+    private $productRepository;
+    private $categoryRepository;
+    private $paginator;
+    //private $request;
+    private $additionalInfoRepository;
+    private $searchFunctions;
+
+    public function __construct(
+        ProductRepository $productRepository,
+        CategoryRepository $categoryRepository,
+        PaginatorInterface $paginator,
+        AdditionalInfoRepository $additionalInfoRepository,
+        SearchFunctions $searchFunctions
+    ) {
+        $this->productRepository = $productRepository;
+        $this->categoryRepository = $categoryRepository;
+        $this->paginator = $paginator;
+        $this->additionalInfoRepository = $additionalInfoRepository;
+        $this->searchFunctions = $searchFunctions;
+    }
     /**
      * @Route("/", name="app_product_index", methods={"GET"})
      */
-    public function index(ProductRepository $productRepository, CategoryRepository $categoryRepository): Response
+    public function index(Request $request): Response
     {
-        $items = [];
-        $categories = $categoryRepository->findBy(['parent' => null]);
-        foreach ($categories as $category) {
-            $subCategories = $categoryRepository->findBy(['parent' => $category->getId()]);
-            $items[] = [$category, $subCategories];
-        }
+        $items = $this->searchFunctions->getCategories();
+
+        $products = $this->productRepository->findAll();
+
+        $images = $this->searchFunctions->getImages($products, 3);
+
+        $pagination = $this->paginator->paginate(
+            $products,
+            $request->query->getInt('page', 1),
+            5
+        );
+
         return $this->render('product/index.html.twig', [
-            'products' => $productRepository->findAll(),
+            'pagination' => $pagination,
             'categories' => $items,
+            'images' => $images,
         ]);
     }
 
@@ -60,8 +90,17 @@ class ProductController extends AbstractController
      */
     public function show(Product $product): Response
     {
+        $items = $this->searchFunctions->getCategories();
+        $offers[$product->getId()] = $this->additionalInfoRepository->findBy(['product' => $product]);
+        /*$stores = [];
+        foreach ($offers as $offer) {
+            $stores[$offer->getId()] = $offer->getStore();
+        }*/
+
         return $this->render('product/show.html.twig', [
             'product' => $product,
+            'categories' => $items,
+            'offers' => $offers,
         ]);
     }
 
@@ -100,13 +139,19 @@ class ProductController extends AbstractController
     /**
      * @Route("/get/search", name="search_product", methods={"GET"})
      */
-    public function searchProduct(Request $request, ProductRepository $repository): Response
+    public function searchProduct(Request $request): Response
     {
         $query = $request->query->get('q');
-        $products = $repository->search($query);
+        $products = $this->productRepository->search($query);
+        $items = $this->searchFunctions->getCategories();
+        $pagination = $this->paginator->paginate($products, 1, 5);
+        $images = $this->searchFunctions->getImages($products, 3);
 
         return $this->render('product/index.html.twig', [
             'products' => $products,
+            'categories' => $items,
+            'pagination' => $pagination,
+            'images' => $images,
         ]);
     }
 
@@ -116,16 +161,45 @@ class ProductController extends AbstractController
      */
     public function ProductCategory(
         Category $category,
-        ProductRepository $productRepository,
-        CategoryRepository $categoryRepository,
-        ParginatorInteface $parginator,
+        Request $request
     ) {
-        $items = [];
-        $categories = $categoryRepository->findBy(['parent' => null]);
-        foreach ($categories as $item) {
-            $subCategories = $categoryRepository->findBy(['parent' => $item->getId()]);
-            $items[] = [$item, $subCategories];
+        $items = $this->searchFunctions->getCategories();
+
+        $pageRequest = $request->query->getInt('page', 1);
+        if ($pageRequest <= 0) {
+            $pageRequest = 1;
         }
 
+        $categories = $this->categoryRepository->findBy(['parent' => $category->getId()]);
+        if ($categories) {
+            $products[] = $category->getProducts();
+            $arrayObject = [];
+            foreach ($categories as $item) {
+                $products[] = $item->getProducts();
+            }
+            foreach ($products as $product) {
+                foreach ($product as $item) {
+                    array_push($arrayObject, $item);
+                }
+            }
+
+            $images = $this->searchFunctions->getImages($arrayObject, 3);
+
+            $pagination = $this->paginator->paginate($arrayObject, $pageRequest, 5);
+            return $this->render('product/index.html.twig', [
+                'categories' => $items,
+                'pagination' => $pagination,
+                'images' => $images,
+            ]);
+        }
+        $products = $category->getProducts();
+        $images = $this->searchFunctions->getImages($products, 3);
+
+        $pagination = $this->paginator->paginate($products, $pageRequest, 5);
+        return $this->render('product/index.html.twig', [
+            'categories' => $items,
+            'pagination' => $pagination,
+            'images' => $images,
+        ]);
     }
 }
