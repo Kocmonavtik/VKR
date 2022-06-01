@@ -41,7 +41,7 @@ class ProductRepository extends ServiceEntityRepository
     public function search(string $query)
     {
         return $this->createQueryBuilder('p')
-            ->where('p.name LIKE :query')
+            ->where('LOWER(p.name) LIKE LOWER(:query)')
             ->setParameter('query', '%' . $query . '%')
             ->getQuery()
             ->getResult();

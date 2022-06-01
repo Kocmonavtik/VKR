@@ -25,11 +25,6 @@ class Product
     private $name;
 
     /**
-     * @ORM\Column(type="json")
-     */
-    private $parameter = [];
-
-    /**
      * @ORM\ManyToMany(targetEntity=Category::class,inversedBy="products")
      */
     private $category;
@@ -45,10 +40,16 @@ class Product
      */
     private $additionalInfos;
 
+    /**
+     * @ORM\OneToMany(targetEntity=PropertyProduct::class, mappedBy="product", orphanRemoval=true)
+     */
+    private $propertyProducts;
+
     public function __construct()
     {
         $this->additionalInfos = new ArrayCollection();
         $this->category = new ArrayCollection();
+        $this->propertyProducts = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -68,17 +69,6 @@ class Product
         return $this;
     }
 
-    public function getParameter(): ?array
-    {
-        return $this->parameter;
-    }
-
-    public function setParameter(array $parameter): self
-    {
-        $this->parameter = $parameter;
-
-        return $this;
-    }
 
     /**
      * @return Collection|Category[]
@@ -139,6 +129,36 @@ class Product
             // set the owning side to null (unless already changed)
             if ($additionalInfo->getProduct() === $this) {
                 $additionalInfo->setProduct(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, PropertyProduct>
+     */
+    public function getPropertyProducts(): Collection
+    {
+        return $this->propertyProducts;
+    }
+
+    public function addPropertyProduct(PropertyProduct $propertyProduct): self
+    {
+        if (!$this->propertyProducts->contains($propertyProduct)) {
+            $this->propertyProducts[] = $propertyProduct;
+            $propertyProduct->setProduct($this);
+        }
+
+        return $this;
+    }
+
+    public function removePropertyProduct(PropertyProduct $propertyProduct): self
+    {
+        if ($this->propertyProducts->removeElement($propertyProduct)) {
+            // set the owning side to null (unless already changed)
+            if ($propertyProduct->getProduct() === $this) {
+                $propertyProduct->setProduct(null);
             }
         }
 

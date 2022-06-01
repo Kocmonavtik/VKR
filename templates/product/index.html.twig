@@ -46,8 +46,8 @@
                             <div class="col-md-8">
                                 <div class="card-body">
                                     <h5 class="card-title"><a  class="text-decoration-none" href="{{ path('app_product_show', {'id': product.id}) }}">{{ product.name }}</a></h5>
-                                    {% for key in product.parameter|keys %}
-                                        <p class="card-text">{{ key }}: {{ product.parameter[key] }}</p>
+                                    {% for property in properties[product.id] %}
+                                        <p class="card-text">{{ property.property.name }}: {{ property.value }}</p>
                                     {% endfor %}
                                 </div>
                             </div>

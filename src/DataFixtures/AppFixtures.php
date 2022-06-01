@@ -6,6 +6,7 @@ use App\Entity\AdditionalInfo;
 use App\Entity\Category;
 use App\Entity\Manufacturer;
 use App\Entity\Product;
+use App\Entity\PropertyProduct;
 use App\Entity\SourceGoods;
 use App\Entity\Store;
 use App\Entity\Users;
@@ -13,6 +14,7 @@ use Cassandra\Date;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use http\Exception\InvalidArgumentException;
+use phpDocumentor\Reflection\DocBlock\Tags\Property;
 use phpDocumentor\Reflection\Types\Self_;
 use ProxyManager\Exception\FileNotWritableException;
 use Symfony\Component\Console\Helper\ProgressBar;
@@ -38,8 +40,7 @@ class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
-        // $product = new Product();
-        // $manager->persist($product);
+        //Создание пользователя
         $user = new Users();
         $user->setEmail('testEmail@emal.com');
         $user->setPassword($this->passwordHasher->hashPassword($user, '123456'));
@@ -50,6 +51,7 @@ class AppFixtures extends Fixture
         $manager->persist($user);
         $manager->flush();
 
+        //Создание магазина
         $store = new Store();
         $store->setCustomer($user);
         $store->setNameStore('Market');
@@ -59,6 +61,7 @@ class AppFixtures extends Fixture
         $manager->persist($store);
         $manager->flush();
 
+        //Создание источника данных
         $sourceGoods = new SourceGoods();
         $sourceGoods->setCustomer($user);
         $sourceGoods->setStore($store);
@@ -78,6 +81,8 @@ class AppFixtures extends Fixture
         }
         $fileSystem->remove(glob(self::UPLOAD_DIR . '/*'));
         $output->writeln('upload directory cleaned');
+
+
         //Запись категорий
         $xmlCategories = $simpleXml->shop->categories->category;
         $categories = [];
@@ -107,14 +112,17 @@ class AppFixtures extends Fixture
         $products = [];
         $manufacturers = [];
         $additionalInfos = [];
+        //$properties = [];
+        $Property[] = new PropertyProduct();
         $output->writeln('offers processing...');
         $progresBar = new ProgressBar($output, min(count($xmlOffers), self::OFFERS_COUNT));
 
+        //Запись товаров
         foreach ($xmlOffers as $xmlOffer) {
             if (++$productCount > self::OFFERS_COUNT) {
                 break;
             }
-            if(!$xmlOffer->param){
+            if (!$xmlOffer->param) {
                 continue;
             }
             $offerXmlId = (string) $xmlOffer->attributes()->id;
@@ -143,21 +151,58 @@ class AppFixtures extends Fixture
                 $product->setName((string) $xmlOffer->name);
                 $product->setManufacturer($manufacturer);
                 $product->addCategory($categories[(string)$xmlOffer->categoryId]);
-                $stack = array();
+                $manager->persist($product);
+                $products[$productXmlId] = $product;
+
+
+                //Работа с характеристиками
+                //$stack = array();
                 foreach ($xmlOffer->param as $xmlParam) {
-                    //$code= (string) $xmlParam->attributes()->code
-                    // ?: \Transliterator::create('tr_Lower')->transliterate($xmlParam->attributes()->name);
-                    $stack[(string) $xmlParam->attributes()->name] = (string)$xmlParam;
+                    /*$stack[(string) $xmlParam->attributes()->name] = (string)$xmlParam;*/
+                    //if (!in_array((string)$xmlParam->attributes()->name, $properties, false)) {
+                    if (empty($Property[(string)$xmlParam->attributes()->name])) {
+                        //$properties[(string)$xmlParam->attributes()->name] = (string)$xmlParam->attributes()->name;
+                        //$properties[(string)$xmlParam->attributes()->name][1] = (string)$xmlParam;
+                        $item = new \App\Entity\Property();
+                        $item->setName((string)$xmlParam->attributes()->name);
+                        $Property[(string)$xmlParam->attributes()->name] = $item;
+                        $manager->persist($item);
+                        $propertyProduct = new PropertyProduct();
+                        $propertyProduct->setProduct($product);
+                        $propertyProduct->setProperty($item);
+                        $propertyProduct->setValue((string)$xmlParam);
+                        $manager->persist($propertyProduct);
+                    } else {
+                        $propertyProduct = new PropertyProduct();
+                        $propertyProduct->setProduct($product);
+                        $propertyProduct->setProperty($Property[(string)$xmlParam->attributes()->name]);
+                        $propertyProduct->setValue((string)$xmlParam);
+                        $manager->persist($propertyProduct);
+                    }
                 }
+                //var_dump($properties);
+
                 //$jsonParameter = json_encode($stack, JSON_UNESCAPED_UNICODE);
                // $items=json_decode($jsonParameter);;
                /* foreach($items as $item){
                     //var_dump(key($item));
                     var_dump($item);
                 }*/
-                $product->setParameter($stack);
-                $manager->persist($product);
-                $products[$productXmlId] = $product;
+                /*$product->setParameter($stack);*/
+               /* $manager->persist($product);
+                $products[$productXmlId] = $product;*/
+                //var_dump($properties);
+                /*foreach ($properties as $property) {
+                    //var_dump($property);
+                    $item = new \App\Entity\Property();
+                    $item->setName($property[0]);
+                    $manager->persist($item);
+                    $propertyProduct = new PropertyProduct();
+                    $propertyProduct->setProduct($product);
+                    $propertyProduct->setProperty($item);
+                    $propertyProduct->setValue($property[1]);
+                    $manager->persist($propertyProduct);
+                }*/
             } else {
                 $product = $products[$productXmlId];
             }
@@ -168,7 +213,7 @@ class AppFixtures extends Fixture
                 $additionalInfo->setStore($store);
                 $additionalInfo->setAverageRating(0);
                 $additionalInfo->setDateUpdate(new \DateTime('now'));
-                $additionalInfo->setPrice((float)$xmlOffer->price);
+                $additionalInfo->setPrice((float)$xmlOffer->price + mt_rand(100, 1500));
                 $additionalInfo->setProduct($product);
                 $additionalInfo->setStatus('complete');
                 $stack = (string)$this->savePicture((string)$xmlOffer->picture);

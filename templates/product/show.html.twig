@@ -45,9 +45,10 @@
                             </div>
                             <div class="col-md-8">
                                 <div class="card-body">
-                                    <h5 class="card-title">Коротко о товаре</h5>
-                                    {% for key in product.parameter|keys %}
-                                        <p class="card-text">{{ key }}: {{ product.parameter[key] }}</p>
+                                    <h4 class="card-title">{{ median }}</h4>
+                                    <h5 class="card-text">Коротко о товаре</h5>
+                                    {% for property in properties[product.id] %}
+                                        <p class="card-text">{{ property.property.name }}: {{ property.value }}</p>
                                     {% endfor %}
                                 </div>
                             </div>

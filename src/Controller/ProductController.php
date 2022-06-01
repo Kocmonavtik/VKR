@@ -4,10 +4,12 @@ namespace App\Controller;
 
 use App\Entity\Category;
 use App\Entity\Product;
+use App\Entity\PropertyProduct;
 use App\Form\ProductType;
 use App\Repository\AdditionalInfoRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\ProductRepository;
+use App\Repository\PropertyProductRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,19 +28,22 @@ class ProductController extends AbstractController
     //private $request;
     private $additionalInfoRepository;
     private $searchFunctions;
+    private $propertyProductRepository;
 
     public function __construct(
         ProductRepository $productRepository,
         CategoryRepository $categoryRepository,
         PaginatorInterface $paginator,
         AdditionalInfoRepository $additionalInfoRepository,
-        SearchFunctions $searchFunctions
+        SearchFunctions $searchFunctions,
+        PropertyProductRepository $propertyProductRepository
     ) {
         $this->productRepository = $productRepository;
         $this->categoryRepository = $categoryRepository;
         $this->paginator = $paginator;
         $this->additionalInfoRepository = $additionalInfoRepository;
         $this->searchFunctions = $searchFunctions;
+        $this->propertyProductRepository = $propertyProductRepository;
     }
     /**
      * @Route("/", name="app_product_index", methods={"GET"})
@@ -48,6 +53,11 @@ class ProductController extends AbstractController
         $items = $this->searchFunctions->getCategories();
 
         $products = $this->productRepository->findAll();
+
+        $properties = [];
+        foreach ($products as $product) {
+            $properties[$product->getId()] = $this->propertyProductRepository->findBy(['product' => $product]);
+        }
 
         $images = $this->searchFunctions->getImages($products, 3);
 
@@ -61,6 +71,7 @@ class ProductController extends AbstractController
             'pagination' => $pagination,
             'categories' => $items,
             'images' => $images,
+            'properties' => $properties
         ]);
     }
 
@@ -91,16 +102,30 @@ class ProductController extends AbstractController
     public function show(Product $product): Response
     {
         $items = $this->searchFunctions->getCategories();
-        $offers[$product->getId()] = $this->additionalInfoRepository->findBy(['product' => $product]);
-        /*$stores = [];
-        foreach ($offers as $offer) {
-            $stores[$offer->getId()] = $offer->getStore();
-        }*/
+        $offers[$product->getId()] = $this->additionalInfoRepository
+            ->findBy(
+                ['product' => $product],
+                ['price' => 'ASC']
+            );
+        $count = count($offers[$product->getId()]);
+
+        if ($count % 2 === 0) {
+            $medianOffer = array_slice($offers[$product->getId()], ($count - 2) / 2, 2);
+            $medianPrice = ($medianOffer[0]->getPrice() + $medianOffer[0]->getPrice()) / 2;
+        } else {
+            $medianOffer = array_slice($offers[$product->getId()], ($count - 1) / 2, 1);
+            $medianPrice = $medianOffer[0]->getPrice();
+        }
+
+        $properties[$product->getId()] = $this->propertyProductRepository->findBy(['product' => $product]);
+
 
         return $this->render('product/show.html.twig', [
             'product' => $product,
             'categories' => $items,
             'offers' => $offers,
+            'median' => $medianPrice,
+            'properties' => $properties
         ]);
     }
 
@@ -147,11 +172,17 @@ class ProductController extends AbstractController
         $pagination = $this->paginator->paginate($products, 1, 5);
         $images = $this->searchFunctions->getImages($products, 3);
 
+        $properties = [];
+        foreach ($products as $product) {
+            $properties[$product->getId()] = $this->propertyProductRepository->findBy(['product' => $product]);
+        }
+
         return $this->render('product/index.html.twig', [
             'products' => $products,
             'categories' => $items,
             'pagination' => $pagination,
             'images' => $images,
+            'properties' => $properties,
         ]);
     }
 
@@ -172,7 +203,7 @@ class ProductController extends AbstractController
 
         $categories = $this->categoryRepository->findBy(['parent' => $category->getId()]);
         if ($categories) {
-            $products[] = $category->getProducts();
+            $products = [];
             $arrayObject = [];
             foreach ($categories as $item) {
                 $products[] = $item->getProducts();
@@ -185,14 +216,25 @@ class ProductController extends AbstractController
 
             $images = $this->searchFunctions->getImages($arrayObject, 3);
 
+            $properties = [];
+            foreach ($arrayObject as $product) {
+                $properties[$product->getId()] = $this->propertyProductRepository->findBy(['product' => $product]);
+            }
+
             $pagination = $this->paginator->paginate($arrayObject, $pageRequest, 5);
             return $this->render('product/index.html.twig', [
                 'categories' => $items,
                 'pagination' => $pagination,
                 'images' => $images,
+                'properties' => $properties
             ]);
         }
         $products = $category->getProducts();
+
+        $properties = [];
+        foreach ($products as $product) {
+            $properties[$product->getId()] = $this->propertyProductRepository->findBy(['product' => $product]);
+        }
         $images = $this->searchFunctions->getImages($products, 3);
 
         $pagination = $this->paginator->paginate($products, $pageRequest, 5);
@@ -200,6 +242,7 @@ class ProductController extends AbstractController
             'categories' => $items,
             'pagination' => $pagination,
             'images' => $images,
+            'properties' => $properties
         ]);
     }
 }
