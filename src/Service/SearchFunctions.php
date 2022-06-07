@@ -26,7 +26,8 @@ class SearchFunctions
     {
         $images = [];
         foreach ($products as $product) {
-            $images[$product->getId()] = $this->additionalInfoRepository->findBy(['product' => $product], null, $limit);
+            //$images[$product->getId()] = $this->additionalInfoRepository->findBy(['product' => $product], null, $limit);
+            $images[$product->getId()] = $product->getAdditionalInfos();
         }
         return $images;
     }
@@ -35,9 +36,19 @@ class SearchFunctions
     {
         $items = [];
         $categories = $this->categoryRepository->findBy(['parent' => null]);
+        $parentCategories = $this->categoryRepository->notNullParent();
+        $parentCategoriesArray = [];
+        foreach ($parentCategories as $parentCategory) {
+            $parentCategoriesArray[$parentCategory->getParent()->getId()][] = $parentCategory;
+        }
         foreach ($categories as $category) {
-            $subCategories = $this->categoryRepository->findBy(['parent' => $category->getId()]);
-            $items[] = [$category, $subCategories];
+            if (empty($parentCategoriesArray[$category->getId()])) {
+                $items[] = [$category, null];
+            } else {
+                $subCategories = $parentCategoriesArray[$category->getId()];
+                //$subCategories = $this->categoryRepository->findBy(['parent' => $category->getId()]);
+                $items[] = [$category, $subCategories];
+            }
         }
         return $items;
     }

@@ -4,9 +4,11 @@ namespace App\DataFixtures;
 
 use App\Entity\AdditionalInfo;
 use App\Entity\Category;
+use App\Entity\Comment;
 use App\Entity\Manufacturer;
 use App\Entity\Product;
 use App\Entity\PropertyProduct;
+use App\Entity\Rating;
 use App\Entity\SourceGoods;
 use App\Entity\Store;
 use App\Entity\Users;
@@ -49,6 +51,16 @@ class AppFixtures extends Fixture
         $user->setGender('male');
         $user->setName('Kocmo');
         $manager->persist($user);
+        $manager->flush();
+
+        $user2 = new Users();
+        $user2->setEmail('test2Email@emal.com');
+        $user2->setPassword($this->passwordHasher->hashPassword($user, '123456'));
+        $user2->setRoles(['ROLE_CLIENT']);
+        $user2->setAvatar('/../../public/upload/avatar/img.png');
+        $user2->setGender('male');
+        $user2->setName('Kocmonavtik');
+        $manager->persist($user2);
         $manager->flush();
 
         //Создание магазина
@@ -221,7 +233,37 @@ class AppFixtures extends Fixture
                 //$jsonImages = json_encode($stack);
                 $additionalInfo->setImage([$stack]);
                 $manager->persist($additionalInfo);
-                $additionalInfos[$productXmlId] = $additionalInfo;
+                $comment = new Comment();
+                $comment->setCustomer($user);
+                $comment->setAdditionalInfo($additionalInfo);
+                $comment->setDate(new \DateTime('now'));
+                $comment->setText('Тестовый отзыв');
+                $manager->persist($comment);
+                $responseComment = new Comment();
+                $responseComment->setText('Согласен, это тестовый отзыв');
+                $responseComment->setDate(new \DateTime('now'));
+                $responseComment->setAdditionalInfo($additionalInfo);
+                $responseComment->setResponse($comment);
+                $responseComment->setCustomer($user);
+                $manager->persist($responseComment);
+
+                $rating1 = new Rating();
+                $rating1->setAdditionalInfo($additionalInfo);
+                $rating1->setCustomer($user);
+                $rating1->setEvaluation(mt_rand(1, 5));
+                $manager->persist($rating1);
+
+                $rating2 = new Rating();
+                $rating2->setAdditionalInfo($additionalInfo);
+                $rating2->setCustomer($user2);
+                $rating2->setEvaluation(mt_rand(1, 5));
+                $manager->persist($rating2);
+                $additionalInfo->setAverageRating(($rating2->getEvaluation() + $rating1->getEvaluation()) / 2);
+                $manager->persist($additionalInfo);
+
+
+
+                //$additionalInfos[$productXmlId] = $additionalInfo;
             //} else {
 
                 //$additionalInfo = $additionalInfos[$productXmlId];

@@ -3,7 +3,7 @@
 {% block title %}Product index{% endblock %}
 
 {% block body %}
-    <div class="container mt-5">
+    <div class="container mt-2">
         {% if pagination is not empty %}
             <div class="d-flex flex-column p-2">
                 {% for product in pagination %}
@@ -46,6 +46,8 @@
                             <div class="col-md-8">
                                 <div class="card-body">
                                     <h5 class="card-title"><a  class="text-decoration-none" href="{{ path('app_product_show', {'id': product.id}) }}">{{ product.name }}</a></h5>
+                                    <h5 class="card-title">Рейтинг:{{ ratingProducts[product.id] }}</h5>
+                                    <h5 class="card-title">Лучшая цена:{{ productMinValue[product.id] }}</h5>
                                     {% for property in properties[product.id] %}
                                         <p class="card-text">{{ property.property.name }}: {{ property.value }}</p>
                                     {% endfor %}

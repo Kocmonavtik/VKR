@@ -1,11 +1,10 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Product{% endblock %}
-
 {% block body %}
     <div class="container mt-5">
         {% if product is not empty %}
-            <h1>product.name</h1>
+            <h1>{{ product.name }}</h1>
             <div class="d-flex flex-column p-2">
                     <div class="card mb-3" style="max-width: 840px;">
                         <div class="row g-0">
@@ -45,7 +44,8 @@
                             </div>
                             <div class="col-md-8">
                                 <div class="card-body">
-                                    <h4 class="card-title">{{ median }}</h4>
+                                    <h4 class="card-title">Средняя цена: {{ median }}</h4>
+                                    <h4 class="card-title">Средняя оценка: {{ avgRating }}</h4>
                                     <h5 class="card-text">Коротко о товаре</h5>
                                     {% for property in properties[product.id] %}
                                         <p class="card-text">{{ property.property.name }}: {{ property.value }}</p>
@@ -66,6 +66,7 @@
                                             <div class="card-body">
                                                 <h4 class="card-title"><a class="text-decoration-none text-info" href="{{ offer.store.urlStore }}">{{ offer.store.nameStore}}</a></h4>
                                                 <h5 class="card-title">Цена: {{ offer.price }}</h5>
+                                                <h5 class="card-title">Средняя оценка: {{ offer.averageRating }}</h5>
                                                 <p class="card-text">Дата обновления цены: {{ offer.dateUpdate|date("m.d.Y", false) }}</p>
                                                 <a type="button" class="btn btn-warning" href="{{ offer.url }}">В магазин</a>
                                             </div>
@@ -75,6 +76,92 @@
                             {% endif %}
                         {% endfor %}
                     </div>
+            </div>
+
+            <section class="gradient-custom">
+                <div class="container my-5 py-5">
+                    <div class="row d-flex justify-content-center">
+                        <div class="col-md-12 col-lg-10 col-xl-8">
+                            <div class="card">
+                                <div class="card-body p-4">
+                                    <h4 class="text-center mb-4 pb-2">Комментариев: {{ countComments }} </h4>
+                                    <div class="row">
+                                        <div class="col">
+                                            {% if app.user %}
+                                                <button  type="button" class="btn btn-warning d-inline-flex align-items-center rounded border-0"
+                                                        data-bs-toggle="collapse" data-bs-target="#comment-collapse" aria-expanded="false">
+                                                    Оставить отзыв
+                                                </button>
+                                                <div class="collapse" id="comment-collapse" style>
+                                                    {{ form_start(form) }}
+                                                    {{ form_widget(form) }}
+                                                    <button class="btn btn-info d-inline-flex align-items-center rounded border-0">{{ button_label|default('Отправить') }}</button>
+                                                    {{ form_end(form) }}
+                                                </div>
+                                            {% endif %}
+                                            {% for originalComment in comments %}
+                                                <div class="d-flex flex-start">
+                                                    <img class="rounded-circle shadow-1-strong me-3"
+                                                         src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/img%20(10).webp" alt="avatar" width="65"
+                                                         height="65" />
+                                                    <div class="flex-grow-1 flex-shrink-1">
+                                                        <div>
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <p class="mb-1">
+                                                                    {{ originalComment.customer.name }} <span class="small">- {{ originalComment.date|format_datetime('short', 'short', locale='ru') }}</span>
+                                                                </p>
+                                                                {% if app.user %}
+                                                                    <button class="btn btn-toolbar d-inline-flex align-items-center rounded border-0 text-white"
+                                                                            data-bs-toggle="collapse" data-bs-target="#catalog-collapse" aria-expanded="false">
+                                                                        Каталог
+                                                                    </button>
+                                                                    <a class="fas fa-reply fa-xs small"
+                                                                       data-bs-toggle="collapse"
+                                                                       data-bs-target="#response-collapse{{ originalComment.id }}"
+                                                                       aria-expanded="false" role="button">Ответить<</a>
+                                                                    <div class="collapse" id="response-collapse{{ originalComment.id }}" style>
+                                                                        {# Редирект не работает, при отправке формы, отправляются все формы
+                                                                         и к каждому комментарию приходит одинаковый ответ TODO#}
+                                                                        {{ render(controller('App\\Controller\\ProductController::commentFormAction',{'product':product.id , 'comment': originalComment}))}}
+                                                                    </div>
+                                                                {% endif %}
+                                                            </div>
+                                                            <p class="small mb-0">{{ originalComment.text }}
+                                                            </p>
+                                                        </div>
+                                                        {% for comment in originalComment.comments %}
+                                                            <div class="d-flex flex-start mt-4">
+                                                                <a class="me-3" href="#">
+                                                                    <img class="rounded-circle shadow-1-strong"
+                                                                         src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/img%20(11).webp" alt="avatar"
+                                                                         width="65" height="65" />
+                                                                </a>
+                                                                <div class="flex-grow-1 flex-shrink-1">
+                                                                    <div>
+                                                                        <div class="d-flex justify-content-between align-items-center">
+                                                                            <p class="mb-1">
+                                                                                {{ comment.customer.name }} <span class="small">- {{ comment.date|format_datetime('short', 'short', locale='ru') }}</span>
+                                                                            </p>
+                                                                        </div>
+                                                                        <p class="small mb-0">
+                                                                            {{ comment.text }}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            </div>
             </div>
         {% else %}
             <div >

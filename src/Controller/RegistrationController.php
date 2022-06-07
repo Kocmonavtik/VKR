@@ -8,6 +8,7 @@ use App\Repository\UsersRepository;
 use App\Security\LoginFormAuthenticator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -34,6 +35,9 @@ class RegistrationController extends AbstractController
         EntityManagerInterface $entityManager,
         UsersRepository $usersRepository
     ): Response {
+        if ($this->getUser()) {
+            return new RedirectResponse($this->generateUrl('app_product_index'));
+        }
         $user = new Users();
         $form = $this->createForm(RegistrationFormType::class, $user);
         $form->handleRequest($request);

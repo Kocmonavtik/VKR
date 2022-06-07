@@ -1,0 +1,135 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Product index{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <div class="d-flex flex-nowrap">
+            <div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark" style="width: 280px;">
+                <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+                    <svg class="bi pe-none me-2" width="40" height="32"><use xlink:href="#bootstrap"></use></svg>
+                    <span class="fs-4">Фильтрация</span>
+                </a>
+                <hr>
+                <ul class="nav nav-pills mb-auto">
+                    <li>
+                        <p>Цена: </p>
+                        <ul class="navbar-nav flex-row flex-wrap navbar-nav">
+                            <li class="nav-item col-3 col-lg-auto"><label>
+                                    <input class="form-control" placeholder="0">
+                                </label>
+                            </li>
+                            <li class="nav-item col-3 col-lg-auto">
+                                <label>
+                                    <input class="form-control" placeholder="6 999 999">
+                                </label>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <p>Производитель:</p>
+                        <div class="list-group w-auto">
+                            {% for manufacturer in manufacturers %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+                                    <label class="form-check-label" for="flexCheckDefault">
+                                        {{ manufacturer.name }}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </li>
+                    <li>
+                        <p>Категория:</p>
+                        <div class="list-group w-auto">
+                            {% for category in itemCategory %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+                                    <label class="form-check-label" for="flexCheckDefault">
+                                        {{ category.name }}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </li>
+                    {% for key, properties in distinctProperties %}
+                        <li>
+                            <p>{{ key }}</p>
+                            <div class="list-group w-auto">
+                                {% for property in properties %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+                                        <label class="form-check-label" for="flexCheckDefault">
+                                            {{ property }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </li>
+                    {% endfor %}
+
+                </ul>
+                {#<hr>#}
+            </div>
+            {% if pagination is not empty %}
+                <div class="d-flex flex-column p-2 flex-shrink-0 bg-light" style="width: 840px;">
+                    {% for product in pagination %}
+                        <div class="card mb-3" style="max-width: 840px;">
+                            <div class="row g-0">
+                                <div class="col-md-4">
+                                    <div id="carousel{{ product.id }}" class="carousel slide" data-bs-ride="carousel">
+                                        <div class="carousel-indicators">
+                                            {% for key in images[product.id]|keys %}
+                                                {% if key==0 %}
+                                                    <button type="button" data-bs-target="#carousel{{ product.id }}" data-bs-slide-to="{{ key }}" class="active" aria-current="true" aria-label="Slide {{ key }}"></button>
+                                                {% else %}
+                                                    <button type="button" data-bs-target="#carousel{{ product.id }}" data-bs-slide-to="{{ key }}" aria-label="Slide {{ key }}"></button>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <div class="carousel-inner">
+                                            {% for info in images[product.id] %}
+                                                {% if loop.first %}
+                                                    <div class="carousel-item active">
+                                                        <a href="{{ path('app_product_show', {'id': product.id}) }}"><img src="{{ asset('upload/pictures/' ~ info.image[0]) }}" class="img-fluid rounded-start" alt="..."></a>
+                                                    </div>
+                                                {% else %}
+                                                    <div class="carousel-item">
+                                                        <a href="{{ path('app_product_show', {'id': product.id}) }}"><img src="{{ asset('upload/pictures/' ~ info.image[0]) }}" class="img-fluid rounded-start" alt="..."></a>
+                                                    </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <button class="carousel-control-prev" type="button" data-bs-target="#carousel{{ product.id }}" data-bs-slide="prev">
+                                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                            <span class="visually-hidden">Previous</span>
+                                        </button>
+                                        <button class="carousel-control-next" type="button" data-bs-target="#carousel{{ product.id }}" data-bs-slide="next">
+                                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                            <span class="visually-hidden">Next</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><a  class="text-decoration-none" href="{{ path('app_product_show', {'id': product.id}) }}">{{ product.name }}</a></h5>
+                                        {% for property in properties[product.id] %}
+                                            <p class="card-text">{{ property.property.name }}: {{ property.value }}</p>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div >
+                    <p class="text-center text-warning">Товары не найдены!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="text-center d-flex justify-content-center">
+        {{ knp_pagination_render(pagination) }}
+    </div>
+{% endblock %}

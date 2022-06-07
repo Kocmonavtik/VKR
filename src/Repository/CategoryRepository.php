@@ -38,6 +38,13 @@ class CategoryRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+    public function notNullParent()
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.parent IS NOT NULL')
+            ->getQuery()
+            ->getResult();
+    }
 
 //    /**
 //     * @return Category[] Returns an array of Category objects
