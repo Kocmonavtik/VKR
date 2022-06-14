@@ -9,6 +9,7 @@ use App\Entity\PropertyProduct;
 use App\Form\CommentType;
 use App\Form\ProductType;
 use App\Form\ResponseCommentType;
+use App\Form\Type\FilterType;
 use App\Repository\AdditionalInfoRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\CommentRepository;
@@ -133,46 +134,12 @@ class ProductController extends AbstractController
      */
     public function show(Product $product, Request $request): Response
     {
+        $responseForms=[];
         $offers[$product->getId()] = $this->additionalInfoRepository
             ->findBy(
                 ['product' => $product],
                 ['price' => 'ASC']
             );
-        $itemComment = new Comment();
-        $form = $this->createForm(CommentType::class, $itemComment);
-        if ($this->getUser()) {
-            $this->requestShow = $request;
-            $itemComment = new Comment();
-            $itemComment->setCustomer($this->getUser());
-            //$itemComment->setDate(new \DateTime('now'));
-            $form = $this->createForm(CommentType::class, $itemComment, array('product' => $product));
-            $form->handleRequest($request);
-
-            if ($form->isSubmitted() && $form->isValid()) {
-                $itemComment->setDate(new \DateTime('now'));
-                $this->commentRepository->add($itemComment, true);
-                return $this->redirectToRoute('app_product_show', ['id' => $product->getId()], Response::HTTP_SEE_OTHER);
-            }
-        }
-
-        $items = $this->searchFunctions->getCategories();
-        $offers[$product->getId()] = $this->additionalInfoRepository
-            ->findBy(
-                ['product' => $product],
-                ['price' => 'ASC']
-            );
-        $count = count($offers[$product->getId()]);
-
-        if ($count % 2 === 0) {
-            $medianOffer = array_slice($offers[$product->getId()], ($count - 2) / 2, 2);
-            $medianPrice = ($medianOffer[0]->getPrice() + $medianOffer[1]->getPrice()) / 2;
-        } else {
-            $medianOffer = array_slice($offers[$product->getId()], ($count - 1) / 2, 1);
-            $medianPrice = $medianOffer[0]->getPrice();
-        }
-
-        $properties[$product->getId()] = $this->propertyProductRepository->findBy(['product' => $product]);
-
 
         $originalComments = [];
         $countComments = 0;
@@ -187,8 +154,58 @@ class ProductController extends AbstractController
                 }
             }
         }
-        $avgRating = $avgRating / count($offers[$product->getId()]);
 
+
+        $itemComment = new Comment();
+        $form = $this->createForm(CommentType::class, $itemComment);
+        if ($this->getUser()) {
+            $this->requestShow = $request;
+            $itemComment = new Comment();
+            $itemComment->setCustomer($this->getUser());
+            $form = $this->createForm(CommentType::class, $itemComment, array('product' => $product));
+            $form->handleRequest($request);
+
+            if ($form->isSubmitted() && $form->isValid()) {
+                $itemComment->setDate(new \DateTime('now'));
+                $this->commentRepository->add($itemComment, true);
+                return $this->redirectToRoute('app_product_show', ['id' => $product->getId()], Response::HTTP_SEE_OTHER);
+            }
+
+            $responseForms=[];
+            foreach ($originalComments as $comment){
+                $responceId=$comment->getId();
+                $itemComment=new Comment();
+                $itemComment->setCustomer($this->getUser());
+                $itemComment->setAdditionalInfo($comment->getAdditionalInfo());//$comment->getAdditionalInfo());
+                $itemComment->setResponse($comment);
+                $form = $this->createForm(ResponseCommentType::class, $itemComment, ['id'=>$responceId]);
+                $form->handleRequest($request);
+                $responseForms[$responceId]=$form->createView();
+
+                if($form->isSubmitted() && $form->isValid()){
+                    $itemComment->setDate(new \DateTime('now'));
+                    $this->commentRepository->add($itemComment, true);
+                    //return $this->redirectToRoute('app_product_show', ['id' => $product->getId()]);
+                    return $this->redirectToRoute('app_product_show', ['id' => $product->getId()], Response::HTTP_SEE_OTHER);
+                }
+            }
+        }
+
+
+        $items = $this->searchFunctions->getCategories();
+        $count = count($offers[$product->getId()]);
+
+        if ($count % 2 === 0) {
+            $medianOffer = array_slice($offers[$product->getId()], ($count - 2) / 2, 2);
+            $medianPrice = ($medianOffer[0]->getPrice() + $medianOffer[1]->getPrice()) / 2;
+        } else {
+            $medianOffer = array_slice($offers[$product->getId()], ($count - 1) / 2, 1);
+            $medianPrice = $medianOffer[0]->getPrice();
+        }
+
+        //$properties[$product->getId()] = $this->propertyProductRepository->findBy(['product' => $product]);
+
+        $avgRating = $avgRating / count($offers[$product->getId()]);
 
 
         return $this->render('product/show.html.twig', [
@@ -196,12 +213,12 @@ class ProductController extends AbstractController
             'categories' => $items,
             'offers' => $offers,
             'median' => $medianPrice,
-            'properties' => $properties,
             'comments' => $originalComments,
             'countComments' => $countComments,
             'form' => $form->createView(),
             'request' => $request,
-            'avgRating' => $avgRating
+            'avgRating' => $avgRating,
+            'responseForms'=>$responseForms
         ]);
     }
 
@@ -285,6 +302,7 @@ class ProductController extends AbstractController
         Category $category,
         Request $request
     ) {
+        $isFilters = false;
         $items = $this->searchFunctions->getCategories();
 
         $pageRequest = $request->query->getInt('page', 1);
@@ -292,7 +310,7 @@ class ProductController extends AbstractController
             $pageRequest = 1;
         }
 
-
+        $product = new Product();
         $avgRatings = $this->serviceRepository->getAverageRatingAndMinPrice();
         $ratingProducts = [];
         $minPrices = [];
@@ -303,55 +321,30 @@ class ProductController extends AbstractController
 
         $parentCategories = $this->categoryRepository->findBy(['parent' => $category]);
         $categories = $this->categoryRepository->findBy(['parent' => $category->getId()]);
+
+
+        if(!empty($request->query->get('filters'))){
+            $productsFilter=$this->productRepository->getProductsWithFilter((array)$request->query->get('filters'), $category);
+            $isFilters=true;
+        }
         if ($categories) {
             $products = [];
             $arrayObject = [];
-            $manufacturers = [];
-            $properties = [];
-            $distinctProperties = [];
             foreach ($categories as $item) {
-                $products[] = $item->getProducts();
+                $arrayObject[] = $item->getProducts();
             }
-            foreach ($products as $product) {
+            foreach ($arrayObject as $product) {
                 foreach ($product as $item) {
-                    array_push($arrayObject, $item);
-                    $nameManufacturer = $item->getManufacturer()->getName();
-                    if (empty($manufacturers[$nameManufacturer])) {
-                        $manufacturers[$nameManufacturer] = $nameManufacturer;
-                    }
-                    $properties[$item->getId()] = $item->getPropertyProducts();
-                    foreach ($properties[$item->getId()] as $property) {
-                        $value = $property->getValue();
-                        $name = $property->getProperty()->getName();
-                        if (empty($distinctProperties[$name][$value])) {
-                            $distinctProperties[$name][$value] = $value;
-                        }
-                    }
+                    array_push($products, $item);
                 }
             }
-
-            $images = $this->searchFunctions->getImages($arrayObject, 3);
-
-            $pagination = $this->paginator->paginate($arrayObject, $pageRequest, 5);
-            return $this->render('product/showCategoryProduct.html.twig', [
-                'categories' => $items,
-                'pagination' => $pagination,
-                'images' => $images,
-                'properties' => $properties,
-                'manufacturers' => $manufacturers,
-                'distinctProperties' => $distinctProperties,
-                'parentCategories' => $parentCategories,
-                'ratingProducts' => $ratingProducts,
-                'minProductPrice' => $minPrices
-
-
-            ]);
+        } else{
+            $products = $category->getProducts();
         }
-        $products = $category->getProducts();
-
         $manufacturers = [];
         $properties = [];
         $distinctProperties = [];
+
         foreach ($products as $product) {
             $properties[$product->getId()] = $product->getPropertyProducts();
             $nameManufacturer = $product->getManufacturer()->getName();
@@ -366,9 +359,33 @@ class ProductController extends AbstractController
                 }
             }
         }
+
         $images = $this->searchFunctions->getImages($products, 3);
 
-        $pagination = $this->paginator->paginate($products, $pageRequest, 5);
+        if(!empty($request->query->get('filters'))) {
+            $pagination = $this->paginator->paginate($productsFilter, $pageRequest, 5);
+        }else{
+            $pagination = $this->paginator->paginate($products, $pageRequest, 5);
+        }
+
+        $form=$this->createForm(FilterType::class, null, [
+            'manufacturer' => $manufacturers,
+            'category' => $parentCategories,
+            'properties' => $distinctProperties,
+            'method' => 'GET'
+        ]);
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            return $this->redirectToRoute(
+                'product_category', [
+                'id' => $category->getId(),
+                'filters' => $form->getData()
+            ],
+                Response::HTTP_SEE_OTHER
+            );
+        }
+
         return $this->render('product/showCategoryProduct.html.twig', [
             'categories' => $items,
             'pagination' => $pagination,
@@ -379,6 +396,9 @@ class ProductController extends AbstractController
             'parentCategories' => $parentCategories,
             'ratingProducts' => $ratingProducts,
             'minProductPrice' => $minPrices,
+            'form' => $form->createView(),
+            'Filters'=>$isFilters,
+            'category'=>$category
         ]);
     }
 
@@ -399,11 +419,115 @@ class ProductController extends AbstractController
             $itemComment->setDate(new \DateTime('now'));
             $this->commentRepository->add($itemComment, true);
             //return $this->redirectToRoute('app_product_show', ['id' => $product->getId()]);
-            //return  $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
+            return  $this->redirectToRoute('app_product_index', [], Response::HTTP_SEE_OTHER);
         }
         return $this->renderForm('comment/_form.html.twig', [
             'form' => $form,
             'comment' => $itemComment,
         ]);
     }
+
+    /**
+     * @Route("/category/{id}/dev", name="product_category_dev", methods={"GET"})
+     *
+     */
+    public function ProductCategoryDev(
+        Category $category,
+        Request $request
+        //$filters
+    ) {
+        $items = $this->searchFunctions->getCategories();
+
+        $pageRequest = $request->query->getInt('page', 1);
+        if ($pageRequest <= 0) {
+            $pageRequest = 1;
+        }
+
+
+        $avgRatings = $this->serviceRepository->getAverageRatingAndMinPrice();
+        $ratingProducts = [];
+        $minPrices = [];
+        foreach ($avgRatings as $avgRating) {
+            $ratingProducts[$avgRating['product_id']] = $avgRating['avg'];
+            $minPrices[$avgRating['product_id']] = $avgRating['min'];
+        }
+
+        $parentCategories = $this->categoryRepository->findBy(['parent' => $category]);
+        $categories = $this->categoryRepository->findBy(['parent' => $category->getId()]);
+
+        if ($categories) {
+            $products=[];
+            $arrayObject = [];
+            foreach ($categories as $item) {
+                $arrayObject[] = $item->getProducts();
+            }
+            foreach ($arrayObject as $product) {
+                foreach ($product as $item) {
+                    array_push($products, $item);
+                }
+            }
+        }else{
+            $products = $category->getProducts();
+        }
+        $manufacturers = [];
+        $properties = [];
+        $distinctProperties = [];
+
+        foreach ($products as $product) {
+            $properties[$product->getId()] = $product->getPropertyProducts();
+            $nameManufacturer = $product->getManufacturer()->getName();
+            if (empty($manufacturers[$nameManufacturer])) {
+                $manufacturers[$nameManufacturer] = $nameManufacturer;
+            }
+            foreach ($properties[$product->getId()] as $property) {
+                $value = $property->getValue();
+                $name = $property->getProperty()->getName();
+                if (empty($distinctProperties[$name][$value])) {
+                    $distinctProperties[$name][$value] = $value;
+                }
+            }
+        }
+
+        $images = $this->searchFunctions->getImages($products, 3);
+        $pagination = $this->paginator->paginate($products, $pageRequest, 5);
+
+        $form=$this->createForm(FilterType::class, null, [
+            'manufacturer' => $manufacturers,
+            'category' => $parentCategories,
+            'properties' => $distinctProperties,
+            'method' => 'GET'
+        ]);
+
+        $form->handleRequest($request);
+        /*$form->get('maxPriceValue')->getData()*/
+        if ($form->isSubmitted() && $form->isValid()) {
+            return $this->redirectToRoute(
+                'product_category', [
+                    'id' => $category->getId(),
+                    'filters' => $form->getData()
+                ],
+                Response::HTTP_SEE_OTHER
+            );
+        }
+
+        return $this->render('product/showCategoryProductDev.html.twig', [
+            'categories' => $items,
+            'pagination' => $pagination,
+            'images' => $images,
+            'properties' => $properties,
+            'manufacturers' => $manufacturers,
+            'distinctProperties' => $distinctProperties,
+            'parentCategories' => $parentCategories,
+            'ratingProducts' => $ratingProducts,
+            'minProductPrice' => $minPrices,
+            'form' => $form->createView(),
+            'filters' => $request->query->get('filters')
+
+        ]);
+    }
+
+
+
+
+
 }

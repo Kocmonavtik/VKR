@@ -47,7 +47,7 @@ class AppFixtures extends Fixture
         $user->setEmail('testEmail@emal.com');
         $user->setPassword($this->passwordHasher->hashPassword($user, '123456'));
         $user->setRoles(['ROLE_CLIENT']);
-        $user->setAvatar('/../../public/upload/avatar/img.png');
+        $user->setAvatar('avatar/img.png');
         $user->setGender('male');
         $user->setName('Kocmo');
         $manager->persist($user);
@@ -57,7 +57,7 @@ class AppFixtures extends Fixture
         $user2->setEmail('test2Email@emal.com');
         $user2->setPassword($this->passwordHasher->hashPassword($user, '123456'));
         $user2->setRoles(['ROLE_CLIENT']);
-        $user2->setAvatar('/../../public/upload/avatar/img.png');
+        $user2->setAvatar('avatar/img.png');
         $user2->setGender('male');
         $user2->setName('Kocmonavtik');
         $manager->persist($user2);

@@ -46,8 +46,9 @@
                                 <div class="card-body">
                                     <h4 class="card-title">Средняя цена: {{ median }}</h4>
                                     <h4 class="card-title">Средняя оценка: {{ avgRating }}</h4>
-                                    <h5 class="card-text">Коротко о товаре</h5>
-                                    {% for property in properties[product.id] %}
+                                    <h4 class="card-title">Производитель: {{ product.manufacturer.name }}</h4>
+                                    <h5 class="card-text">О товаре</h5>
+                                    {% for property in product.propertyProducts %}
                                         <p class="card-text">{{ property.property.name }}: {{ property.value }}</p>
                                     {% endfor %}
                                 </div>
@@ -102,7 +103,7 @@
                                             {% for originalComment in comments %}
                                                 <div class="d-flex flex-start">
                                                     <img class="rounded-circle shadow-1-strong me-3"
-                                                         src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/img%20(10).webp" alt="avatar" width="65"
+                                                         src="{{ asset('upload/' ~ originalComment.customer.avatar) }}" alt="avatar" width="65"
                                                          height="65" />
                                                     <div class="flex-grow-1 flex-shrink-1">
                                                         <div>
@@ -120,9 +121,9 @@
                                                                        data-bs-target="#response-collapse{{ originalComment.id }}"
                                                                        aria-expanded="false" role="button">Ответить<</a>
                                                                     <div class="collapse" id="response-collapse{{ originalComment.id }}" style>
-                                                                        {# Редирект не работает, при отправке формы, отправляются все формы
-                                                                         и к каждому комментарию приходит одинаковый ответ TODO#}
-                                                                        {{ render(controller('App\\Controller\\ProductController::commentFormAction',{'product':product.id , 'comment': originalComment}))}}
+                                                                        {{ form_start(responseForms[originalComment.id]) }}
+                                                                            {{ form_widget(responseForms[originalComment.id]) }}
+                                                                        {{ form_end(responseForms[originalComment.id]) }}
                                                                     </div>
                                                                 {% endif %}
                                                             </div>
@@ -133,7 +134,7 @@
                                                             <div class="d-flex flex-start mt-4">
                                                                 <a class="me-3" href="#">
                                                                     <img class="rounded-circle shadow-1-strong"
-                                                                         src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/img%20(11).webp" alt="avatar"
+                                                                         src="{{ asset('upload/' ~ originalComment.customer.avatar) }}" alt="avatar"
                                                                          width="65" height="65" />
                                                                 </a>
                                                                 <div class="flex-grow-1 flex-shrink-1">
