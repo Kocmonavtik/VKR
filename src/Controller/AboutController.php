@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Model\ProductDto;
 use App\Repository\AdditionalInfoRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\CommentRepository;
@@ -12,6 +13,7 @@ use App\Service\ServiceRepository;
 use Knp\Component\Pager\PaginatorInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -115,27 +117,83 @@ class AboutController extends AbstractController
                 'name'=>$product->getName(),
             ];
         }
-        return $this->json($data);
-       /* return $this->json(
-            [ 'pagination' => $pagination,
-                'categories' => $items,
-                'images' => $images,
-                'properties' => $properties,
-                'ratingProducts' => $ratingProducts,
-                'productMinValue' => $minPrices,
-
-            ]);*/
-
-        /* return $this->render('product/index.html.twig', [
+         return $this->render('product/indexDev.html.twig', [
              'pagination' => $pagination,
              'categories' => $items,
              'images' => $images,
              'properties' => $properties,
              'ratingProducts' => $ratingProducts,
              'productMinValue' => $minPrices,
-         ]);*/
+         ]);
     }
 
+    /**
+     * @Route("/about/filters", name="product_filters", methods={"GET", "POST"})
+     */
+    public function getProductsWithFilter(string $filter='popularity'): JsonResponse
+    {
+        //$items = $this->searchFunctions->getCategories();
+        /*  switch ($filter){
+              case 'popularity':
+                  break;
+              case 'rating':
+                  break;
+              case 'priceUp':
+                  break;
+              case 'priceDown':
+                  break;
+          }*/
+        $products = $this->productRepository->findAll();
 
+       /* $properties = [];
+        foreach ($products as $product) {
+            $properties[$product->getId()] = $product->getPropertyProducts();
+        }*/
+        $dtoProducts=[];
+        foreach ($products as $product){
+            $productDto= new ProductDto();
+            $dtoProducts[]= $productDto->dtoFromProduct($product);
+        }
+
+        $avgRatings = $this->serviceRepository->getAverageRatingAndMinPrice();
+        $ratingProducts = [];
+        $minPrices = [];
+        foreach ($avgRatings as $avgRating) {
+            $ratingProducts[$avgRating['product_id']] = $avgRating['avg'];
+            $minPrices[$avgRating['product_id']] = $avgRating['min'];
+        }
+
+      /*  $images = $this->searchFunctions->getImages($products, 3);*/
+
+        /* $pagination = $this->paginator->paginate(
+             $products,
+             $request->query->getInt('page', 1),
+             5
+         );*/
+        return $this->json([
+            'pagination'=>$dtoProducts,
+            'ratingProducts'=>$ratingProducts,
+            'productMinValue'=>$minPrices,
+        ]);
+       /* return $this->json(
+            [   'pagination' => (array) $products,
+                'images' => $images,
+                'properties' => $properties,
+                'ratingProducts' => $ratingProducts,
+                'productMinValue' => $minPrices,
+            ],
+            200,
+            [
+                'groups'=>['main']
+            ]
+        );*/
+        /*  return $this->render('product/index.html.twig', [
+              'pagination' => $products,
+              'images' => $images,
+              'properties' => $properties,
+              'ratingProducts' => $ratingProducts,
+              'productMinValue' => $minPrices,
+          ]);*/
+    }
 
 }

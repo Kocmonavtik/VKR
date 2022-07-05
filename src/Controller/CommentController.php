@@ -7,6 +7,7 @@ use App\Form\CommentType;
 use App\Repository\CommentRepository;
 use App\Service\SearchFunctions;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -17,14 +18,25 @@ use Symfony\Component\Routing\Annotation\Route;
 class CommentController extends AbstractController
 {
     /**
-     * @Route("/", name="app_comment_index", methods={"GET"})
+     * @Route("/", name="app_comment_index", methods={"GET", "POST"})
      */
-    public function index(CommentRepository $commentRepository, SearchFunctions $searchFunctions): Response
+    public function index(CommentRepository $commentRepository, SearchFunctions $searchFunctions, Request $request): Response
     {
         $items = $searchFunctions->getCategories();
-        return $this->render('comment/index.html.twig', [
+        $comments=$commentRepository->findAll();
+        if ($request->isXmlHttpRequest() || $request->query->get('showJson') == 1) {
+            $jsonData = array ();
+            $idx = 0;
+            foreach ($comments as $item) {
+                $temp = array('id' => $item->getId(),
+                    'text' => $item->getText());
+                $jsonData[$idx++] = $temp;
+            }
+            return new JsonResponse($jsonData);
+        }
+        return $this->render('comment/testAjax.html.twig', [
             'comments' => $commentRepository->findAll(),
-            'categories'=>$items
+            'categories' => $items
         ]);
     }
 
@@ -85,7 +97,7 @@ class CommentController extends AbstractController
      */
     public function delete(Request $request, Comment $comment, CommentRepository $commentRepository): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$comment->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $comment->getId(), $request->request->get('_token'))) {
             $commentRepository->remove($comment, true);
         }
 
