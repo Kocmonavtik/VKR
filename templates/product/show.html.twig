@@ -3,6 +3,38 @@
 {% block title %}Product{% endblock %}
 {% block body %}
     <div class="container mt-5">
+
+    {#<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" data-bs-whatever="@mdo">Open modal for @mdo</button>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" data-bs-whatever="@fat">Open modal for @fat</button>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" data-bs-whatever="@getbootstrap">Open modal for @getbootstrap</button>
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">New message</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label for="recipient-name" class="col-form-label">Recipient:</label>
+                            <input type="text" class="form-control" id="recipient-name">
+                        </div>
+                        <div class="mb-3">
+                            <label for="message-text" class="col-form-label">Message:</label>
+                            <textarea class="form-control" id="message-text"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Send message</button>
+                </div>
+            </div>
+        </div>
+    </div>#}
+
         {% if product is not empty %}
             <h1>{{ product.name }}</h1>
             <div class="d-flex flex-column p-2">
@@ -64,12 +96,18 @@
                                             </a>
                                         </div>
                                         <div class="col-md-8">
+
                                             <div class="card-body">
                                                 <h4 class="card-title"><a class="text-decoration-none text-info" href="{{ offer.store.urlStore }}">{{ offer.store.nameStore}}</a></h4>
                                                 <h5 class="card-title">Цена: {{ offer.price }}</h5>
                                                 <h5 class="card-title">Средняя оценка: {{ offer.averageRating }}</h5>
                                                 <p class="card-text">Дата обновления цены: {{ offer.dateUpdate|date("m.d.Y", false) }}</p>
-                                                <a type="button" class="btn btn-warning" href="{{ offer.url }}">В магазин</a>
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <a type="button" class="btn btn-warning" href="{{ offer.url }}">В магазин</a>
+                                                    {#<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" data-whatever="@mdo">Open modal for @mdo</button>
+                                                    <a class="fas fa-reply fa-xs small" aria-expanded="false" type="button" data-toggle="modal" data-target="#reportModal" data-whatever id="{{ offer.id }}">Жалоба<</a>#}
+                                                    <a class="fas fa-reply fa-xs small" type="button" data-bs-toggle="modal" data-bs-target="#reportModal" data-bs-whatever="{{ offer.id }}" aria-expanded="false">Жалоба</a>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -112,10 +150,10 @@
                                                                     {{ originalComment.customer.name }} <span class="small">- {{ originalComment.date|format_datetime('short', 'short', locale='ru') }}</span>
                                                                 </p>
                                                                 {% if app.user %}
-                                                                    <button class="btn btn-toolbar d-inline-flex align-items-center rounded border-0 text-white"
+                                                                    {#<button class="btn btn-toolbar d-inline-flex align-items-center rounded border-0 text-white"
                                                                             data-bs-toggle="collapse" data-bs-target="#catalog-collapse" aria-expanded="false">
                                                                         Каталог
-                                                                    </button>
+                                                                    </button>#}
                                                                     <a class="fas fa-reply fa-xs small"
                                                                        data-bs-toggle="collapse"
                                                                        data-bs-target="#response-collapse{{ originalComment.id }}"
@@ -169,6 +207,33 @@
                 <p class="text-center text-warning">Упс! Товар не найден!</p>
             </div>
         {% endif %}
+    </div>
+
+    <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reportModalLabel">Отправить жалобу</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                       {# <div class="mb-3">
+                            <label for="recipient-name" class="col-form-label">Recipient:</label>
+                            <input type="text" class="form-control" id="recipient-name">
+                        </div>#}
+                        <div class="mb-3">
+                            <label for="message-text" class="col-form-label">Текст жалобы:</label>
+                            <textarea class="form-control" id="message-text"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                    <button type="button" class="btn btn-primary">Отправить</button>
+                </div>
+            </div>
+        </div>
     </div>
 
 

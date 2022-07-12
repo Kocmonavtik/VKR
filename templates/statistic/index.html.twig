@@ -1,0 +1,81 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello StatisticController!{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <div class="row align-items-start">
+            <div class="col">
+                <p>Категория:
+                    <select class="form-select" aria-label="category" id="selectCategory">
+                        <option selected value="nothing">Не выбрано</option>
+                        {#<option selected value="rating">Рейтингу</option>
+                        <option value="priceUp">Цене по возрастанию</option>
+                        <option value="priceDown">Цене по убыванию</option>
+                        <option value="popularity">Популярности</option>#}
+                    </select>
+                </p>
+               {# <p>Производитель</p>
+                <div id="brandList">
+
+                </div>#}
+            </div>
+            <div class="col">
+                <p>Магазин:
+                  {#  <select class="form-select" aria-label="shop" id="selectShop">
+                        <option selected value="nothing">Не выбрано</option>
+                        #}{#<option selected value="rating">Рейтингу</option>
+                        <option value="priceUp">Цене по возрастанию</option>
+                        <option value="priceDown">Цене по убыванию</option>
+                        <option value="popularity">Популярности</option>#}{#
+                    </select>#}
+                </p>
+                <div id="storeList">
+
+                </div>
+            </div>
+
+            <div class="col">
+                <p>Производитель</p>
+                <div id="brandList">
+
+                </div>
+            </div>
+
+            <div class="col">
+                <p>Статистика по:
+                    <select class="form-select" aria-label="statisticData" id="selectStatisticData">
+                        <option selected value="nothing">Не выбрано</option>
+                        <option value="rating">Рейтингу</option>
+                        <option value="visit">Посещаемости</option>
+                    </select>
+                </p>
+                <button type="button" class="btn btn-success btn-lg disabled" id="createChart">Создать</button>
+            </div>
+        </div>
+
+        <canvas id="Chart" width="600" height="400"></canvas>
+    </div>
+
+
+
+
+{#<style>
+    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
+    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
+</style>
+
+<div class="example-wrapper">
+    <h1>Hello {{ controller_name }}! ✅</h1>
+
+    This friendly message is coming from:
+    <ul>
+        <li>Your controller at <code><a href="{{ '/app/src/Controller/StatisticController.php'|file_link(0) }}">src/Controller/StatisticController.php</a></code></li>
+        <li>Your template at <code><a href="{{ '/app/templates/statistic/index.html.twig'|file_link(0) }}">templates/statistic/index.html.twig</a></code></li>
+    </ul>
+</div>#}
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('Statistic') }}
+{% endblock %}

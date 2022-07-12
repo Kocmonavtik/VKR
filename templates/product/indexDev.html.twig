@@ -4,17 +4,17 @@
 
 {% block body %}
     <div class="container mt-2">
-        {#{% if pagination is not empty %}#}
-            <div class="d-flex flex-column p-2 align-items-center" id="productList" >
-                <p>Отсортировать по:
-                    <select class="form-select" aria-label="Sort" id="selectSort">
-                        <option selected value="rating">Рейтингу</option>
-                        <option value="priceUp">Цене по возрастанию</option>
-                        <option value="priceDown">Цене по убыванию</option>
-                        <option value="popularity">Популярности</option>
-                    </select>
-                </p>
-              {#  {% for product in pagination %}
+        <p>Отсортировать по:
+            <select class="form-select" aria-label="Sort" id="selectSort">
+                <option selected value="rating">Рейтингу</option>
+                <option value="priceUp">Цене по возрастанию</option>
+                <option value="priceDown">Цене по убыванию</option>
+                <option value="popularity">Популярности</option>
+            </select>
+        </p>
+            <div class="d-flex flex-column p-2 align-items-center" id="productList">
+
+               {# {% for product in pagination %}
                     <div class="card mb-3" style="max-width: 840px;">
                         <div class="row g-0">
                             <div class="col-md-4">
@@ -27,8 +27,8 @@
                                                 <button type="button" data-bs-target="#carousel{{ product.id }}" data-bs-slide-to="{{ key }}" aria-label="Slide {{ key }}"></button>
                                             {% endif %}
                                         {% endfor %}
-                                    </div>
-                                    <div class="carousel-inner">
+                                    </div>#}
+                                   {# <div class="carousel-inner">
                                         {% for info in images[product.id] %}
                                             {% if loop.first %}
                                                 <div class="carousel-item active">
@@ -60,16 +60,14 @@
                                         <p class="card-text">{{ property.property.name }}: {{ property.value }}</p>
                                     {% endfor %}
                                 </div>
-                            </div>
-                        </div>
+                            </div>#}
+                   {#   </div>
+                    </div>
                     </div>
                 {% endfor %}#}
             </div>
-      {#  {% else %}
-            <div >
-                <p class="text-center text-warning">Товары не найдены!</p>
+    </div>
             </div>
-        {% endif %}#}
     </div>
     <nav class="text-center d-flex justify-content-center">
         <ul class="pagination" id="paginationList">
@@ -80,7 +78,7 @@
         {{ knp_pagination_render(pagination) }}
     </div>#}
 {% endblock %}
-{% block javascripts %}
-    {{ parent() }}
-    {{ encore_entry_script_tags('SortProducts') }}
-{% endblock %}
+ {% block javascripts %}
+     {{ parent() }}
+     {{ encore_entry_script_tags('SortProducts') }}
+ {% endblock %}

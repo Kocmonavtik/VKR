@@ -87,50 +87,15 @@ class AboutController extends AbstractController
     {
         $items = $this->searchFunctions->getCategories();
 
-        $products = $this->productRepository->findAll();
-
-        $properties = [];
-        foreach ($products as $product) {
-            $properties[$product->getId()] = $product->getPropertyProducts();
-        }
-
-        $avgRatings = $this->serviceRepository->getAverageRatingAndMinPrice();
-        $ratingProducts = [];
-        $minPrices = [];
-        foreach ($avgRatings as $avgRating) {
-            $ratingProducts[$avgRating['product_id']] = $avgRating['avg'];
-            $minPrices[$avgRating['product_id']] = $avgRating['min'];
-        }
-
-        $images = $this->searchFunctions->getImages($products, 3);
-
-        $pagination = $this->paginator->paginate(
-            $products,
-            $request->query->getInt('page', 1),
-            5
-        );
-
-        $data=[];
-        foreach ($products as $product){
-            $data[]=[
-                'id'=>$product->getId(),
-                'name'=>$product->getName(),
-            ];
-        }
          return $this->render('product/indexDev.html.twig', [
-             'pagination' => $pagination,
              'categories' => $items,
-             'images' => $images,
-             'properties' => $properties,
-             'ratingProducts' => $ratingProducts,
-             'productMinValue' => $minPrices,
          ]);
     }
 
     /**
      * @Route("/about/filters", name="product_filters", methods={"GET", "POST"})
      */
-    public function getProductsWithFilter(string $filter='popularity'): JsonResponse
+    public function getProductsWithFilter(Request $request): JsonResponse
     {
         //$items = $this->searchFunctions->getCategories();
         /*  switch ($filter){
@@ -143,12 +108,26 @@ class AboutController extends AbstractController
               case 'priceDown':
                   break;
           }*/
-        $products = $this->productRepository->findAll();
+        if(!empty($request->query->get('page'))){
+            $page = $request->query->get('page');
+        }else{$page=1;}
+        if(!empty($request->query->get('filter'))){
+            $filter=$request->query->get('filter');
+        }else{$filter='popularity';}
+        switch ($filter){
+            case 'rating':
+                $products = $this->productRepository->sortProductRating();
+                break;
+            case 'priceUp':
+                $products = $this->productRepository->sortProductMaxPrice();
+                break;
+            case 'priceDown':
+                $products = $this->productRepository->sortProductMinPrice();
+                break;
+            default:
+                $products = $this->productRepository->findAll();
+        }
 
-       /* $properties = [];
-        foreach ($products as $product) {
-            $properties[$product->getId()] = $product->getPropertyProducts();
-        }*/
         $dtoProducts=[];
         foreach ($products as $product){
             $productDto= new ProductDto();
@@ -163,37 +142,20 @@ class AboutController extends AbstractController
             $minPrices[$avgRating['product_id']] = $avgRating['min'];
         }
 
-      /*  $images = $this->searchFunctions->getImages($products, 3);*/
 
-        /* $pagination = $this->paginator->paginate(
-             $products,
-             $request->query->getInt('page', 1),
-             5
-         );*/
+        $pagination= $this->paginator->paginate(
+            $dtoProducts,
+            $page,
+            5
+        );
+
         return $this->json([
-            'pagination'=>$dtoProducts,
-            'ratingProducts'=>$ratingProducts,
-            'productMinValue'=>$minPrices,
+            'pagination' => $pagination,
+            'ratingProducts' => $ratingProducts,
+            'productMinValue' => $minPrices,
+            'filter' => $filter,
+            'page' => $page,
         ]);
-       /* return $this->json(
-            [   'pagination' => (array) $products,
-                'images' => $images,
-                'properties' => $properties,
-                'ratingProducts' => $ratingProducts,
-                'productMinValue' => $minPrices,
-            ],
-            200,
-            [
-                'groups'=>['main']
-            ]
-        );*/
-        /*  return $this->render('product/index.html.twig', [
-              'pagination' => $products,
-              'images' => $images,
-              'properties' => $properties,
-              'ratingProducts' => $ratingProducts,
-              'productMinValue' => $minPrices,
-          ]);*/
     }
 
 }

@@ -58,9 +58,10 @@ class ProductRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
     public function getProductsWithFilter(array $options, $origCategory)
     {
-
+        $counter = 2;
         $minPrice = $options['minPriceValue'];
         $maxPrice = $options['maxPriceValue'];
         if (empty($options['category'])) {
@@ -75,29 +76,14 @@ class ProductRepository extends ServiceEntityRepository
             }
         } else {
             $category = $options['category'];
+            $counter++;
         }
 
-        $counter = 3;
         if (!empty($options['manufacturer'])) {
             $manufacturer = $options['manufacturer'];
             $counter++;
         }
 
-        $property = [];
-        $i = 0;
-        $j = 0;
-        while ($i < count($options) - $counter) {
-            if (empty($options["property_$j"])) {
-                ++$j;
-                continue;
-            }
-            $key = stristr($options["property_$j"][0], '/', true);
-            foreach ($options["property_$j"] as $item) {
-                $property[] = mb_substr(strstr($item, '/'), 1);
-            }
-            ++$j;
-            ++$i;
-        }
         $builder = $this->createQueryBuilder('p')
             ->distinct('true')
             ->leftJoin('p.propertyProducts', 'pp')
@@ -113,126 +99,57 @@ class ProductRepository extends ServiceEntityRepository
                 ->setParameter('category', $category);
         }
         if (!empty($manufacturer)) {
-            $builder->andWhere('m.name IN (:manifacturer)')
-                ->setParameter('manifacturer', $manufacturer);
-        }
-        if (!empty($property)) {
-            $builder->andWhere('pp.value IN (:property)')
-                ->setParameter('property', $property);
+            $builder->andWhere('m.name IN (:manufacturer)')
+                ->setParameter('manufacturer', $manufacturer);
         }
 
-        //var_dump($property);
-       /* $masQueries=[];
-        foreach ($property as $key=>$properties){
-            $builder=$this->createQueryBuilder('p')
-                ->leftJoin('p.propertyProducts', 'pp')
-                ->leftJoin('pp.property','property')
-                ->where('property.name= :key')
-                ->setParameter('key',$key);
-            foreach ($properties as $item){*/
-               /* $builder->orWhere("c.id = :id$i");
-                $builder->setParameter("id$i", $this->categoryRepository->findOneBy(['name' => $category[$i]])->getId());
-                $builder->andWhere()*/
-       /*     }
-
-        }
-        $rangePriceProducts = $this->createQueryBuilder('p')
-            ->leftJoin('p.additionalInfos', 'ai')
-            ->where('ai.price > :minprice')
-            ->setParameter('minprice', $minPrice)
-            ->andWhere('ai.price < :maxprice')
-            ->setParameter('maxprice', $maxPrice)
-            ->getQuery()
-            ->getResult();
-        if (empty($options['manufacturer'])) {
-        } elseif (count($manufacturer) > 1) {
-            $builder = $this->createQueryBuilder('p')
-                ->leftJoin('p.manufacturer', 'm')
-                ->where('m.name = :name0')
-                ->setParameter('name0', $this->manufacturerRepository->findOneBy(['name' => $manufacturer])->getName());
-            for ($i = 1, $iMax = count($manufacturer); $i < $iMax; ++$i) {
-                $builder->orWhere("m.name = :name$i");
-                $builder->setParameter("name$i", $this->manufacturerRepository->findOneBy(['name' => $manufacturer[$i]])->getName());
-            }
-            $manufacturerProducts = $builder->getQuery()->getResult();
-        } else {
-            $manufacturerProducts = $this->createQueryBuilder('p')
-                ->leftJoin('p.manufacturer', 'm')
-                ->where('m.name = :name')
-                ->setParameter('name', $this->manufacturerRepository->findOneBy(['name' => $manufacturer])->getName())
-                ->getQuery()
-                ->getResult();
-        }
-
-
-        if (empty($options['category'])) {
-            $categories = $this->categoryRepository->findBy(['parent' => $origCategory->getId()]);
-            if ($categories) {
-                $categoryProducts = [];
-                $arrayObject = [];
-                foreach ($categories as $item) {
-                    $arrayObject[] = $item->getProducts();
-                }
-                foreach ($arrayObject as $product) {
-                    foreach ($product as $item) {
-                        array_push($categoryProducts, $item);
+        if (count($options) - $counter !== 0) {
+            $property = [];
+            $i = 0;
+            $j = 0;
+            while ($i < count($options) - $counter) {
+                $property = [];
+                if (empty($options["property_$j"])) {
+                    ++$j;
+                } else {
+                    //$key = stristr($options["property_$j"][0], '/', true);
+                    foreach ($options["property_$j"] as $item) {
+                        $property[] = mb_substr(strstr($item, '/'), 1);
                     }
-                }
-            } else {
-                $categoryProducts=[];
-                $tmp = $origCategory->getProducts();
-                foreach ($tmp as $item){
-                    array_push($categoryProducts, $item);
+                    $builder->andWhere("pp.value IN (:property$j)")
+                        ->setParameter("property$j", $property);
+                    ++$j;
+                    ++$i;
                 }
             }
         }
-
-        if (empty($manufacturer)) {
-            $resultForm = array_uintersect($rangePriceProducts, $categoryProducts, function ($a, $b) {
-                return strcmp(spl_object_hash($a), spl_object_hash($b));
-            });
-        } else {
-            $resultForm = array_uintersect($rangePriceProducts, $manufacturerProducts, function ($a, $b) {
-                return strcmp(spl_object_hash($a), spl_object_hash($b));
-            });
-            $resultForm = array_uintersect($resultForm, $categoryProducts, function ($a, $b) {
-                return strcmp(spl_object_hash($a), spl_object_hash($b));
-            });
-        }*/
         return $builder->getQuery()->getResult();
     }
-    public function sortProductRating(){
 
+    public function sortProductRating()
+    {
+        $builder = $this->createQueryBuilder('p')
+            ->leftJoin('p.additionalInfos', 'ai')
+            ->leftJoin('ai.ratings', 'r')
+            ->groupBy('p.id')
+            ->orderBy('avg(r.evaluation)', 'DESC');
+        return $builder->getQuery()->getResult();
     }
-    public function sortProductMinPrice(){
-
+    public function sortProductMinPrice()
+    {
+        $builder = $this->createQueryBuilder('p')
+            ->leftJoin('p.additionalInfos', 'ai')
+            ->groupBy('p.id')
+            ->orderBy('min(ai.price)', 'DESC');
+        return $builder->getQuery()->getResult();
     }
-    public function sortProductMaxPrice(){
-
+    public function sortProductMaxPrice()
+    {
+        $builder = $this->createQueryBuilder('p')
+            ->leftJoin('p.additionalInfos', 'ai')
+            ->groupBy('p.id')
+            ->orderBy('min(ai.price)', 'ASC');
+        return $builder->getQuery()->getResult();
     }
 
-//    /**
-//     * @return Product[] Returns an array of Product objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('p')
-//            ->andWhere('p.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('p.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?Product
-//    {
-//        return $this->createQueryBuilder('p')
-//            ->andWhere('p.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
 }

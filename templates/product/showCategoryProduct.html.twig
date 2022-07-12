@@ -4,6 +4,14 @@
 
 {% block body %}
     <div class="container mt-5">
+        <p>Отсортировать по:
+            <select class="form-select" aria-label="Sort" id="selectSort">
+                <option selected value="rating">Рейтингу</option>
+                <option value="priceUp">Цене по возрастанию</option>
+                <option value="priceDown">Цене по убыванию</option>
+                <option value="popularity">Популярности</option>
+            </select>
+        </p>
         <div class="d-flex flex-nowrap">
             <div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark" style="width: 280px;">
                 <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">

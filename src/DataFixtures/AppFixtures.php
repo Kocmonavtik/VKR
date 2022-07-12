@@ -10,8 +10,10 @@ use App\Entity\Product;
 use App\Entity\PropertyProduct;
 use App\Entity\Rating;
 use App\Entity\SourceGoods;
+use App\Entity\Statistic;
 use App\Entity\Store;
 use App\Entity\Users;
+use App\Repository\AdditionalInfoRepository;
 use Cassandra\Date;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
@@ -32,12 +34,14 @@ class AppFixtures extends Fixture
     private const UPLOAD_DIR = __DIR__ . '/../../public/upload/pictures';
 
     private const OFFERS_COUNT = 500;
+    private $repository;
 
     private UserPasswordHasherInterface $passwordHasher;
 
-    public function __construct(UserPasswordHasherInterface $passwordHasher)
+    public function __construct(UserPasswordHasherInterface $passwordHasher, AdditionalInfoRepository $repository)
     {
         $this->passwordHasher = $passwordHasher;
+        $this->repository=$repository;
     }
 
     public function load(ObjectManager $manager): void
@@ -72,6 +76,25 @@ class AppFixtures extends Fixture
         $store->setUrlStore('none');
         $manager->persist($store);
         $manager->flush();
+
+        $store1 = new Store();
+        $store1->setCustomer($user2);
+        $store1->setNameStore('MarketShop');
+        $store1->setDescription('Магазин одежды');
+        $store1->setLogo('storeLogo/img.png');
+        $store1->setUrlStore('none');
+        $manager->persist($store1);
+        $manager->flush();
+
+        $store2 = new Store();
+        $store2->setCustomer($user2);
+        $store2->setNameStore('ShopHouse');
+        $store2->setDescription('Shopping house');
+        $store2->setLogo('storeLogo/img.png');
+        $store2->setUrlStore('none');
+        $manager->persist($store2);
+        $manager->flush();
+
 
         //Создание источника данных
         $sourceGoods = new SourceGoods();
@@ -222,7 +245,21 @@ class AppFixtures extends Fixture
             //if (!isset($additionalInfos[$productXmlId])) {
                 $additionalInfo = new AdditionalInfo();
                 $additionalInfo->setUrl((string)$xmlOffer->url);
-                $additionalInfo->setStore($store);
+
+                $randStore = mt_rand(1, 3);
+            switch ($randStore) {
+                case 1:
+                    $additionalInfo->setStore($store);
+                    break;
+                case 2:
+                    $additionalInfo->setStore($store1);
+                    break;
+                case 3:
+                    $additionalInfo->setStore($store2);
+                    break;
+            }
+
+                //$additionalInfo->setStore($store);
                 $additionalInfo->setAverageRating(0);
                 $additionalInfo->setDateUpdate(new \DateTime('now'));
                 $additionalInfo->setPrice((float)$xmlOffer->price + mt_rand(100, 1500));
@@ -232,6 +269,7 @@ class AppFixtures extends Fixture
                 //var_dump($stack);
                 //$jsonImages = json_encode($stack);
                 $additionalInfo->setImage([$stack]);
+
                 $manager->persist($additionalInfo);
                 $comment = new Comment();
                 $comment->setCustomer($user);
@@ -251,12 +289,14 @@ class AppFixtures extends Fixture
                 $rating1->setAdditionalInfo($additionalInfo);
                 $rating1->setCustomer($user);
                 $rating1->setEvaluation(mt_rand(1, 5));
+                $rating1->setDate(new \DateTime('now'));
                 $manager->persist($rating1);
 
                 $rating2 = new Rating();
                 $rating2->setAdditionalInfo($additionalInfo);
                 $rating2->setCustomer($user2);
                 $rating2->setEvaluation(mt_rand(1, 5));
+                $rating2->setDate(new \DateTime('now'));
                 $manager->persist($rating2);
                 $additionalInfo->setAverageRating(($rating2->getEvaluation() + $rating1->getEvaluation()) / 2);
                 $manager->persist($additionalInfo);
@@ -275,6 +315,18 @@ class AppFixtures extends Fixture
         $output->writeln('Flush to database...');
         $manager->flush();
         $output->writeln('Flush to database finished');
+
+        $additionalInfos= $this->repository->findAll();
+        foreach ($additionalInfos as $additionalInfo){
+            $rndStatistic = random_int(100, 300);
+            for($i=0; $i<$rndStatistic; ++$i){
+                $statistic= new Statistic();
+                $statistic->setAdditionalInfo($additionalInfo);
+                $statistic->setDateVisit(new \DateTime('now'));
+                $manager->persist($statistic);
+            }
+            $manager->flush();
+        }
     }
     private function savePicture(string $pictureUrl): ?string
     {
