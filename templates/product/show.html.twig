@@ -36,8 +36,15 @@
     </div>#}
 
         {% if product is not empty %}
-            <h1>{{ product.name }}</h1>
-            <div class="d-flex flex-column p-2">
+            {% if app.user  %}
+                <div class="d-flex flex-column p-2 align-items-center">
+                    <h1>{{ product.name }}</h1>
+                    <a type="button" class="btn btn-warning" href="{{ path('product_statistic', {'id': product.id}) }}">Статистика</a>
+                </div>
+            {% else %}
+                <h1>{{ product.name }}</h1>
+            {% endif %}
+            <div class="d-flex flex-column p-2 align-items-center">
                     <div class="card mb-3" style="max-width: 840px;">
                         <div class="row g-0">
                             <div class="col-md-4">
@@ -124,10 +131,24 @@
                             <div class="card">
                                 <div class="card-body p-4">
                                     <h4 class="text-center mb-4 pb-2">Комментариев: {{ countComments }} </h4>
-                                    <div class="row">
-                                        <div class="col">
-                                            {% if app.user %}
-                                                <button  type="button" class="btn btn-warning d-inline-flex align-items-center rounded border-0"
+                                    {% if app.user %}
+                                    <span>Выбрать магазин</span>
+                                    <div class="row align-items-center">
+                                        <div class="col-5">
+                                            <select class="form-select" aria-label="category" id="selectCategory">
+                                                <option selected value="nothing">Не выбрано</option>
+                                                {% for shop in shops %}
+                                                    <option value="{{ shop.nameStore }}">{{ shop.nameStore }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-7">
+                                            <input id="input-2" name="input-2" class="rating rating-loading" data-min="0" data-max="5" data-step="0.5" data-size="lg">
+                                        </div>
+                                    </div>
+                                        <div class="row">
+                                            <div class="col">
+                                                <button  type="button" class="btn btn-warning d-inline-flex align-items-center rounded border-0 disabled"
                                                         data-bs-toggle="collapse" data-bs-target="#comment-collapse" aria-expanded="false">
                                                     Оставить отзыв
                                                 </button>
@@ -255,7 +276,6 @@
 
 
 
-
     {#<table class="table">
         <tbody>
             <tr>
@@ -279,3 +299,7 @@
 
     {{ include('product/_delete_form.html.twig') }}#}
 {% endblock %}
+  {% block javascripts %}
+      {{ parent() }}
+{#      {{ encore_entry_script_tags('') }}#}
+  {% endblock %}

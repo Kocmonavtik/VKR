@@ -192,6 +192,7 @@ class ProductController extends AbstractController
         //$properties[$product->getId()] = $this->propertyProductRepository->findBy(['product' => $product]);
 
         $avgRating = $avgRating / count($offers[$product->getId()]);
+        $shops = $this->serviceRepository->getStoresProduct($product);
 
 
         return $this->render('product/show.html.twig', [
@@ -204,7 +205,9 @@ class ProductController extends AbstractController
             'form' => $form->createView(),
             'request' => $request,
             'avgRating' => $avgRating,
-            'responseForms'=>$responseForms
+            'responseForms'=>$responseForms,
+            'user'=>$this->getUser(),
+            'shops'=>$shops
         ]);
     }
 
@@ -237,7 +240,7 @@ class ProductController extends AbstractController
         }
 
 
-        return $this->render('product/index.html.twig', [
+        return $this->render('product/indexSearch.html.twig', [
             'products' => $products,
             'categories' => $items,
             'pagination' => $pagination,

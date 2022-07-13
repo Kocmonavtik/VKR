@@ -1,7 +1,11 @@
 import {Chart} from "chart.js";
+/*import {Star} from "bootstrap-star-rating"*/
+/*require("bootstrap-star-rating");
+require("bootstrap-star-rating/css/star-rating.css");*/
 
 $(document).ready(function () {
     const controller = "/statistic/filtersData";
+    $("#input-2").rating();
     /* let select = document.getElementById("selectSort");
      let valueFilter = select.options[select.selectedIndex].value;
      let page = 1;*/
@@ -29,13 +33,17 @@ $(document).ready(function () {
         let button = document.getElementById('createChart');
         if (category === 'nothing' || statisticData === 'nothing') {
             button.className = 'btn btn-success btn-lg disabled';
-        } else {
+        } else if (statisticData === 'rating') {
+            button.className = 'btn btn-success btn-lg';
+        } else if (statisticData === 'visit') {
             button.className = 'btn btn-success btn-lg';
         }
     })
 
     $('#createChart').click(function () {
         let dataStatistic = $("#selectStatisticData").val();
+        let dateFirst = $("#date_dateFirst").val();
+        let dateSecond=$("#date_dateSecond").val();
        /* switch (dataStatistic) {
             case 'rating':
                 var statisic= dataStatistic;
@@ -67,7 +75,7 @@ $(document).ready(function () {
         alert(manufacturers);*/
         //alert($('.storeCheck:checkbox:checked'));
         const controller = '/statistic/getData';
-        createChartAjax(controller, dataStatistic, stores, manufacturers, category, chart);
+        createChartAjax(controller, dataStatistic, stores, manufacturers, category, chart, dateFirst, dateSecond);
 
 
 
@@ -143,7 +151,7 @@ $(document).ready(function () {
     });
 })
 
-function createChartAjax(controller, dataStatistic, stores, manufacturers, category, chart)
+function createChartAjax(controller, dataStatistic, stores, manufacturers, category, chart,dateFirst, dateSecond)
 {
     $.ajax({
         url: controller,
@@ -152,7 +160,9 @@ function createChartAjax(controller, dataStatistic, stores, manufacturers, categ
             dataType: dataStatistic,
             stores: stores,
             manufacturers: manufacturers,
-            category: category
+            category: category,
+            dateFirst: dateFirst,
+            dateSecond: dateSecond
         },
         success:
             function (response) {
@@ -182,6 +192,8 @@ function createChartAjax(controller, dataStatistic, stores, manufacturers, categ
 
                 if (dataStatistic === 'rating') {
                     var text = 'Статистика рейтинга по категории' + category;
+                } else {
+                    var text = 'Cтатистика посещений по категории' + category;
                 }
                 let datasetsMas = [];
                 for (var key in response.result) {
@@ -290,7 +302,6 @@ function dataajax(controller)
                         '                </div>'
                 }
                 $('#storeList').append(stores)
-
                 let brand = '';
                 for (var key in response.manufacturers) {
                     brand += '<div class="form-check">\n' +
@@ -308,7 +319,8 @@ function dataajax(controller)
             }
     });
 }
-function createRandomColor(){
+function createRandomColor()
+{
 
     var r = Math.floor(Math.random() * (256));
     var g = Math.floor(Math.random() * (256));

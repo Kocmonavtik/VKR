@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello StatisticController!{% endblock %}
+{% block title %}Statistic category{% endblock %}
 
 {% block body %}
     <div class="container mt-5">
@@ -51,6 +51,11 @@
                     </select>
                 </p>
                 <button type="button" class="btn btn-success btn-lg disabled" id="createChart">Создать</button>
+                <p>Период посещаемости:</p>
+                {{ form_start(dateForm) }}
+                {{ form_widget(dateForm.dateFirst) }}
+                {{ form_widget(dateForm.dateSecond) }}
+                {{ form_end(dateForm) }}
             </div>
         </div>
 

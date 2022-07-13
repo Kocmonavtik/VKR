@@ -51,16 +51,34 @@
                         </div>
                     </li>
                 </ul>
-                <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" role="search" action="{{ path('search_product') }}" method="get">
+               {# <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" role="search" action="{{ path('search_product') }}" method="get">
                     <input type="search" class="form-control form-control-dark text-white bg-dark" placeholder="Поиск..." aria-label="Search" name="q">
+                    <button class="btn btn-sm btn-primary">Поиск</button>
+                </form>#}
+                <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" role="search" action="{{ path('search_product') }}" method="get">
+                    <div class="row">
+                        <div class="col-lg-6 text-end">
+                            <input type="search" class="form-control form-control-dark text-white bg-dark" placeholder="Поиск..." aria-label="Search" name="q">
+                        </div>
+                        <div class="col-lg-3 text-start">
+                            <button class="btn btn-primary">Поиск</button>
+                        </div>
+                    </div>
                 </form>
                 <div class="text-end">
                     {% if app.user %}
-                        <p class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">Привет, {{app.user.name}} </p>
+                        <p>
+                        <span class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">Привет {{app.user.name}} </span>
 
                         <a type="button" class="btn btn-warning" href="#">Профиль</a>
 
                         <a type="button" class="btn btn-danger" href="{{ path('app_logout') }}">Выход</a>
+                        </p>
+                       {# <p class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">Привет, {{app.user.name}} </p>
+
+                        <a type="button" class="btn btn-warning" href="#">Профиль</a>
+
+                        <a type="button" class="btn btn-danger" href="{{ path('app_logout') }}">Выход</a>#}
 
                     {#<ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
                         <li>

@@ -12,5 +12,6 @@ import Routing from 'fos-router';
 import {Carousel} from "bootstrap";
 import {Modal} from "bootstrap";
 import {Chart} from "chart.js";
+import {Star} from "bootstrap-star-rating"
 // start the Stimulus application
 import './bootstrap';

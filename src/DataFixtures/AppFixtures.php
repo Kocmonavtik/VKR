@@ -270,6 +270,14 @@ class AppFixtures extends Fixture
                 //$jsonImages = json_encode($stack);
                 $additionalInfo->setImage([$stack]);
 
+                $rndStatistic = random_int(100, 300);
+                for($i=0; $i<$rndStatistic; ++$i){
+                    $statistic= new Statistic();
+                    $statistic->setAdditionalInfo($additionalInfo);
+                    $statistic->setDateVisit(new \DateTime('now'));
+                    $manager->persist($statistic);
+                }
+
                 $manager->persist($additionalInfo);
                 $comment = new Comment();
                 $comment->setCustomer($user);
@@ -316,7 +324,7 @@ class AppFixtures extends Fixture
         $manager->flush();
         $output->writeln('Flush to database finished');
 
-        $additionalInfos= $this->repository->findAll();
+       /* $additionalInfos= $this->repository->findAll();
         foreach ($additionalInfos as $additionalInfo){
             $rndStatistic = random_int(100, 300);
             for($i=0; $i<$rndStatistic; ++$i){
@@ -326,7 +334,7 @@ class AppFixtures extends Fixture
                 $manager->persist($statistic);
             }
             $manager->flush();
-        }
+        }*/
     }
     private function savePicture(string $pictureUrl): ?string
     {

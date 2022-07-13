@@ -2,6 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\Product;
+use App\Form\DateType;
+use App\Repository\AdditionalInfoRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\ManufacturerRepository;
 use App\Repository\StoreRepository;
@@ -20,19 +23,22 @@ class StatisticController extends AbstractController
     private $manufacturerRepository;
     private $storeRepository;
     private $serviceRepository;
+    private $additionalInfoRepository;
 
     public function __construct(
         SearchFunctions $searchFunctions,
         CategoryRepository $categoryRepository,
         ManufacturerRepository $manufacturerRepository,
         StoreRepository $storeRepository,
-        ServiceRepository $serviceRepository
+        ServiceRepository $serviceRepository,
+        AdditionalInfoRepository $additionalInfoRepository
     ) {
         $this->searchFunctions = $searchFunctions;
         $this->categoryRepository = $categoryRepository;
         $this->manufacturerRepository = $manufacturerRepository;
         $this->storeRepository = $storeRepository;
         $this->serviceRepository = $serviceRepository;
+        $this->additionalInfoRepository = $additionalInfoRepository;
     }
 
     /**
@@ -40,12 +46,72 @@ class StatisticController extends AbstractController
      */
     public function index(): Response
     {
+        $form = $this->createForm(DateType::class);
         $items = $this->searchFunctions->getCategories();
         return $this->render('statistic/index.html.twig', [
-            'controller_name' => 'StatisticController',
-            'categories' => $items
+           /* 'controller_name' => 'StatisticController',*/
+            'categories' => $items,
+            'dateForm' => $form->createView()
         ]);
     }
+    /**
+     *@Route("/statistic/product/{id}", name="product_statistic", methods={"GET", "POST"})
+     */
+    public function indexProduct(Product $product): Response
+    {
+        $form = $this->createForm(DateType::class);
+        $items = $this->searchFunctions->getCategories();
+        $offers[$product->getId()] = $this->additionalInfoRepository
+            ->findBy(
+                ['product' => $product],
+                ['price' => 'ASC']
+            );
+        $shops = $this->serviceRepository->getStoresProduct($product);
+        return $this->render('statistic/indexProduct.html.twig', [
+            'categories' => $items,
+            'dateForm' => $form->createView(),
+            'product' => $product,
+            'offers' => $offers,
+            'shops' => $shops
+
+        ]);
+    }
+    /**
+     * @Route ("/statistic/productData", name="get_product_statistic", methods={"GET","POST"})
+     */
+    public function loadProduct(Request $request): JsonResponse
+    {
+        $dataType = $request->query->get('dataType');
+        $stores = $request->query->get('stores');
+        $id = $request->query->get('productId');
+
+        $statisticStore = [];
+        if ($dataType === 'rating') {
+            $result = $this->serviceRepository->getRatingProductStore($stores, $id);
+
+            foreach ($result as $item) {
+                $statisticStore[$item['nameStore']] = $item['avg'];
+            }
+        } else {
+            $dateFirst = $request->query->get('dateFirst');
+            $dateSecond = $request->query->get('dateSecond');
+            $result = $this->serviceRepository->getVisitProductStore(
+                $stores,
+                $dateFirst,
+                $dateSecond,
+                $id
+            );
+            foreach ($result as $item) {
+                $statisticStore[$item['nameStore']] = (float) $item['count'];
+            }
+        }
+        return $this->json([
+            'result' => $statisticStore
+        ]);
+    }
+
+
+
     /**
      * @Route("/statistic/filtersData", name="statistic_data",  methods={"GET", "POST"})
      */
@@ -76,7 +142,7 @@ class StatisticController extends AbstractController
         }
         return $this->json([
             'manufacturers' => $manufacturers,
-            'stores' => $stores
+            'stores' => $stores,
         ]);
     }
     /**
@@ -90,7 +156,7 @@ class StatisticController extends AbstractController
         $category = $request->query->get('category');
         //var_dump($stores, $manufacturers);
         $tmp = [];
-        $ratingStore = [];
+        $statisticStore = [];
         if ($dataType === 'rating') {
             $result = $this->serviceRepository->getRatingBrandStore($stores, $manufacturers, $category);
 
@@ -101,22 +167,37 @@ class StatisticController extends AbstractController
             foreach ($tmp as $key => $items) {
                 foreach ($manufacturers as $manufacturer) {
                     if (array_key_exists($manufacturer, $items)) {
-                        $ratingStore[$key][] = (float) $items[$manufacturer];
+                        $statisticStore[$key][] = (float) $items[$manufacturer];
                     } else {
-                        $ratingStore[$key][] = (float) 0;
+                        $statisticStore[$key][] = (float) 0;
                     }
                 }
-                /*foreach ($items as $keyManifacturer=>$value){
-                    if()
-                }*/
             }
-            //var_dump($tmp,$ratingStore);
-            //var_dump($ratingStore);
-            //var_dump($result);
         } else {
+            $dateFirst = $request->query->get('dateFirst');
+            $dateSecond = $request->query->get('dateSecond');
+            $result = $this->serviceRepository->getVisitBrandStore(
+                $stores,
+                $manufacturers,
+                $category,
+                $dateFirst,
+                $dateSecond
+            );
+            foreach ($result as $item) {
+                $tmp[$item['nameStore']][$item['name']] = $item['count'];
+            }
+            foreach ($tmp as $key => $items) {
+                foreach ($manufacturers as $manufacturer) {
+                    if (array_key_exists($manufacturer, $items)) {
+                        $statisticStore[$key][] = (float) $items[$manufacturer];
+                    } else {
+                        $statisticStore[$key][] = 0.0;
+                    }
+                }
+            }
         }
         return $this->json([
-            'result' => $ratingStore
+            'result' => $statisticStore
         ]);
     }
 }
