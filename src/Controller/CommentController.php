@@ -34,7 +34,7 @@ class CommentController extends AbstractController
             }
             return new JsonResponse($jsonData);
         }
-        return $this->render('comment/testAjax.html.twig', [
+        return $this->render('comment/index.html.twig', [
             'comments' => $commentRepository->findAll(),
             'categories' => $items
         ]);

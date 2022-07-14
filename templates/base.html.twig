@@ -70,27 +70,10 @@
                         <p>
                         <span class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">Привет {{app.user.name}} </span>
 
-                        <a type="button" class="btn btn-warning" href="#">Профиль</a>
+                        <a type="button" class="btn btn-warning" href="{{ path('app_profile') }}">Профиль</a>
 
                         <a type="button" class="btn btn-danger" href="{{ path('app_logout') }}">Выход</a>
                         </p>
-                       {# <p class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">Привет, {{app.user.name}} </p>
-
-                        <a type="button" class="btn btn-warning" href="#">Профиль</a>
-
-                        <a type="button" class="btn btn-danger" href="{{ path('app_logout') }}">Выход</a>#}
-
-                    {#<ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
-                        <li>
-                            <p class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">Привет, {{app.user.name}} </p>
-                        </li>
-                        <li>
-                            <a type="button" class="btn btn-warning" href="{{ path('app_login') }}">Профиль</a>
-                        </li>
-                        <li>
-                            <a type="button" class="btn btn-danger" href="{{ path('app_register') }}">Выход</a>
-                        </li>
-                    </ul>#}
                     {% else %}
                         <a type="button" class="btn btn-outline-light me-2" href="{{ path('app_login') }}">Авторизация</a>
                         <a type="button" class="btn btn-warning" href="{{ path('app_register') }}">Регистрация</a>
