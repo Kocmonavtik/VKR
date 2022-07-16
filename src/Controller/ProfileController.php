@@ -32,6 +32,5 @@ class ProfileController extends AbstractController
      */
     public function application():Response
     {
-
     }
 }

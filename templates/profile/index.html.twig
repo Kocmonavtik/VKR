@@ -46,7 +46,10 @@
                 <div class="p-3 py-5">
                     <div class="d-flex justify-content-between align-items-center experience">
                         <span>Добавление магазина</span>
-                        <a type="button" class="btn btn-warning" href="#">Заявка</a>
+                       {# <a type="button" class="btn btn-warning" data-bs-toggle="modal">Заявка</a>#}
+                        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#ApplicationModal">
+                            Заявка
+                        </button>
                     </div>
                     <br>
                     <div class="col-md-12">
@@ -178,11 +181,47 @@
                     </div>
                 </div>
             </div>
-
-
-
         </div>
     </div>
     </div>
+    </div>
+
+    <div class="modal fade" id="ApplicationModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Заявка</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label for="recipient-name" class="col-form-label">ФИО</label>
+                            <input type="text" class="form-control" id="FIO-modal">
+                        </div>
+                        <div class="mb-3">
+                            <label for="recipient-name" class="col-form-label">Название магазина</label>
+                            <input type="text" class="form-control" id="Store-name-modal">
+                        </div>
+                        <div>
+                            <label for="formFile" class="form-label">Лого сайта</label>
+                            <input class="form-control" type="file" id="formFile">
+                        </div>
+                        <div class="mb-3">
+                            <label for="recipient-name" class="col-form-label">Ссылка на XML файл</label>
+                            <input type="text" class="form-control" id="URL-xml-madal">
+                        </div>
+                       {# <div class="mb-3">
+                            <label for="message-text" class="col-form-label">Message:</label>
+                            <textarea class="form-control" id="message-text"></textarea>
+                        </div>#}
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                    <button type="button" class="btn btn-primary">Отправить заявку</button>
+                </div>
+            </div>
+        </div>
     </div>
 {% endblock %}
