@@ -192,9 +192,11 @@
                                                         </div>
                                                         <p id="textOrigComment{{ originalComments[key].id }}" class="small mb-0">{{ originalComments[key].text }}</p>
                                                     </div>
-                                                    <a class="fas fa-reply fa-xs small text-end" labelButton="reportComment"
-                                                       type="button" data-bs-toggle="modal" data-bs-target="#reportModal"
-                                                       data-bs-whatever="{{ originalComments[key].id }}" aria-expanded="false">Жалоба</a>
+                                                    {% if app.user %}
+                                                        <a class="fas fa-reply fa-xs small text-end" labelButton="reportComment"
+                                                           type="button" data-bs-toggle="modal" data-bs-target="#reportModal"
+                                                           data-bs-whatever="{{ originalComments[key].id }}" aria-expanded="false">Жалоба</a>
+                                                    {% endif %}
                                                     <div id="responseComments{{ originalComments[key].id }}">
                                                         {% if responseComments[key] is defined %}
                                                             {% for responseComment in responseComments[key]  %}

@@ -52,7 +52,7 @@ $(document).ready(function () {
             let commentId = $('#currentCommentText').attr('name');
             editRating(controller, value, ratingId, offerId, commentId);
     });
-    $("#addReview").click(function () {
+    $("#addReview").on('click',function () {
         if (flag) {
             const controller = "/comment/edit"
             let commentId = currentCommentId;

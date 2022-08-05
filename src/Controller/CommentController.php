@@ -255,4 +255,5 @@ class CommentController extends AbstractController
             'text' => 'Жалоба успешно отправлена'
         ]);
     }
+
 }

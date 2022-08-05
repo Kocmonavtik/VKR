@@ -77,8 +77,13 @@
                 </div>
             </div>
         </div>
-        {% if is_granted('ROLE_CLIENT') %}
+        {% if is_granted('ROLE_MODER') %}
             <div class="row">
+                <a type="button" class="btn btn-primary" href="{{ path('admin') }}">Админ панель</a>
+            </div>
+        {% endif %}
+        {% if is_granted('ROLE_CLIENT') %}
+            <div class="row mt-3">
                 <a type="button" class="btn btn-success" href="{{ path('app_statistic') }}">К статистике</a>
             </div>
         {% endif %}

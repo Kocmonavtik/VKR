@@ -309,4 +309,9 @@ class AdditionalInfo
 
         return $this;
     }
+    public function __toString()
+    {
+        $string = $this->product. ': ' . $this->store.' id: '.$this->id;
+        return $string;
+    }
 }

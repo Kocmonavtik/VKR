@@ -84,8 +84,86 @@ class ProductRepository extends ServiceEntityRepository
             $manufacturer = $options['manufacturer'];
             $counter++;
         }
+        //новый
+        $properties = [];
+        if (count($options) - $counter !== 0) {
+            //$property = [];
+            $i = 0;
+            $j = 0;
+            while ($i < count($options) - $counter) {
+                //$property = [];
+                if (empty($options["property_$j"])) {
+                    ++$j;
+                } else {
+                    foreach ($options["property_$j"] as $item) {
+                        $properties[$i][] = mb_substr(strstr($item, '/'), 1);
+                    }
+                   /* $builder->andWhere("pp.value IN (:property$j)")
+                        ->setParameter("property$j", $property);*/
+                    ++$j;
+                    ++$i;
+                }
+            }
+        }
+        $result = [];
+        foreach ($properties as $property) {
+            $builder = $this->createQueryBuilder('p')
+                ->leftJoin('p.propertyProducts', 'pp')
+                ->leftJoin('pp.property', 'prop')
+                ->leftJoin('p.category', 'c')
+                ->leftJoin('p.manufacturer', 'm')
+                ->leftJoin('p.additionalInfos', 'ai')
+                ->leftJoin('ai.ratings', 'r')
+                ->where('ai.price between :min and :max')
+                ->setParameter('min', $minPrice)
+                ->setParameter('max', $maxPrice);
+            if (!empty($category)) {
+                $builder->andWhere('c.name IN (:category)')
+                    ->setParameter('category', $category);
+            }
+            if (!empty($manufacturer)) {
+                $builder->andWhere('m.name IN (:manufacturer)')
+                    ->setParameter('manufacturer', $manufacturer);
+            }
 
-        $builder = $this->createQueryBuilder('p')
+            $builder->andWhere("pp.value IN (:property)")
+                ->setParameter("property", $property);
+
+            $builder->groupBy('p.id');
+            switch ($sort) {
+                case 'rating':
+                    $builder->orderBy('avg(r.evaluation)', 'DESC');
+                    break;
+                case 'priceUp':
+                    $builder->orderBy('min(ai.price)', 'ASC');
+                    break;
+                case 'priceDown':
+                    $builder->orderBy('min(ai.price)', 'DESC');
+                    break;
+            }
+            $result[] = $builder->getQuery()->getResult();
+        }
+        $count = count($result);
+        $countsCoincidences = [];
+        $masObjects = [];
+        foreach ($result as $products) {
+            foreach ($products as $product) {
+                $masObjects[$product->getId()] = $product;
+                $countsCoincidences[] = $product->getId();
+            }
+        }
+        $resultObjects = [];
+        $counts = array_count_values($countsCoincidences);
+        foreach ($counts as $key => $item) {
+            if ($count === $counts[$key]) {
+                $resultObjects[] = $masObjects[$key];
+            }
+        }
+
+
+
+        //окончание
+      /*  $builder = $this->createQueryBuilder('p')
             ->leftJoin('p.propertyProducts', 'pp')
             ->leftJoin('pp.property', 'prop')
             ->leftJoin('p.category', 'c')
@@ -135,8 +213,8 @@ class ProductRepository extends ServiceEntityRepository
             case 'priceDown':
                 $builder->orderBy('min(ai.price)', 'DESC');
                 break;
-        }
-        return $builder->getQuery()->getResult();
+        }*/
+        return $resultObjects;
     }
 
     public function sortProductRating($search)

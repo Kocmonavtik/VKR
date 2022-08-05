@@ -352,6 +352,7 @@ class AppFixtures extends Fixture
                 $comment->setAdditionalInfo($additionalInfo);
                 $comment->setDate(new \DateTime('now'));
                 $comment->setText('Тестовый отзыв');
+                $comment->setStatus('complete');
                 $manager->persist($comment);
                 $responseComment = new Comment();
                 $responseComment->setText('Согласен, это тестовый отзыв');
@@ -359,6 +360,7 @@ class AppFixtures extends Fixture
                 $responseComment->setAdditionalInfo($additionalInfo);
                 $responseComment->setResponse($comment);
                 $responseComment->setCustomer($userComment2);
+                $responseComment->setStatus('complete');
                 $manager->persist($responseComment);
 
                 $rating1 = new Rating();

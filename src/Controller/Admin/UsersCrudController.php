@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Users;
+use Doctrine\DBAL\Types\TextType;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
@@ -22,11 +23,15 @@ class UsersCrudController extends AbstractCrudController
         return [
             //IdField::new('id'),
             TextField::new('email'),
-            TextField::new('password'),
-            //ChoiceField::new('gender'),
+            TextField::new('password')->hideOnIndex(),
+            ChoiceField::new('gender')->setChoices([
+                'Мужской' => 'male',
+                'Женский' => 'female',
+                'Не указано' => 'secret'
+            ]),
             TextField::new('name'),
-            AssociationField::new('category')
+            TextField::new('avatar')
+
         ];
     }
-
 }

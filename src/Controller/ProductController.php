@@ -50,7 +50,7 @@ class ProductController extends AbstractController
   /*  private $manufacturerRepository;
     private $propertyRepository;*/
     private $commentRepository;
-    private $serviceRepository;
+    private ServiceRepository $serviceRepository;
     private $ratingRepository;
 
     public function __construct(
@@ -102,8 +102,11 @@ class ProductController extends AbstractController
 
         $offers[$product->getId()] = $this->additionalInfoRepository
             ->findBy(
-                ['product' => $product],
-                ['price' => 'ASC']
+                [
+                    'product' => $product,
+                    'status' => 'complete'
+                ],
+                ['price' => 'ASC'],
             );
         if ($this->getUser()) {
             $currentComment = $this->commentRepository->getOriginalCommentCurrentUser($product, $this->getUser());
@@ -132,16 +135,20 @@ class ProductController extends AbstractController
 
         $avgRating = $avgRating / count($offers[$product->getId()]);
         $shops = $this->serviceRepository->getStoresProduct($product);
-        $comments=$this->serviceRepository->getComments($product->getId());
+        $comments = $this->serviceRepository->getComments($product->getId());
+        //var_dump($comments);
         $originalComments = [];
         $responseComments = [];
-        $count=0;
-        foreach ($comments as $commment){
-            if($commment['response_id'] === null){
-                $originalComments[$commment['id']] = $commment;
+        $count = 0;
+        foreach ($comments as $comment) {
+            if ($comment['id']== null) {
+                continue;
+            }
+            if ($comment['response_id'] === null) {
+                $originalComments[$comment['id']] = $comment;
                 $count++;
-            }else{
-                $responseComments[$commment['response_id']][] = $commment;
+            } else {
+                $responseComments[$comment['response_id']][] = $comment;
                 $count++;
             }
         }
@@ -162,8 +169,6 @@ class ProductController extends AbstractController
                 $masPropertiesProduct[$item->getProperty()->getName()] .= ' ' . $item->getValue();
             }
         }
-
-
         return $this->render('product/show.html.twig', [
             'product' => $product,
             'categories' => $items,
@@ -252,6 +257,7 @@ class ProductController extends AbstractController
 
         if(!empty($request->query->get('filters'))){
             $productsFilter=$this->productRepository->getProductsWithFilter((array)$request->query->get('filters'), $category);
+            //var_dump($productsFilter);
             $isFilters=true;
         }
         if ($categories) {

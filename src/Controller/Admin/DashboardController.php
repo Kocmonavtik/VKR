@@ -57,7 +57,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud('Магазины', 'fas fa-map-market-alt', Store::class);
         yield MenuItem::linkToCrud('Рейтинги', 'fas fa-map-market-alt', Rating::class);
         yield MenuItem::linkToCrud('Комментарии', 'fas fa-map-market-alt', Comment::class);
-        yield MenuItem::linkToCrud('Жалобы', 'fas fa-map-market-alt', ReportComment::class);
+        yield MenuItem::linkToCrud('Жалобы на отзывы', 'fas fa-map-market-alt', ReportComment::class);
         yield MenuItem::linkToCrud('Жалобы на продукты', 'fas fa-map-market-alt', ReportProduct::class);
         yield MenuItem::linkToCrud('Заявки', 'fas fa-map-market-alt', Application::class);
         yield MenuItem::linkToCrud('Источники данных', 'fas fa-map-market-alt', SourceGoods::class);

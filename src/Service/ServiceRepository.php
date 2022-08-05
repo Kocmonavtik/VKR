@@ -271,6 +271,7 @@ where tmp.countProd > 0';
                     left join comment c on ai.id = c.additional_info_id
                     left join users u on c.customer_id = u.id
                     where p.id = $productId
+                    and c.status = 'complete'
                     order by c.date DESC";
         $stmt = $connection->prepare($sql);
         $resultSet = $stmt->executeQuery();

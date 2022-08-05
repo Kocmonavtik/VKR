@@ -61,6 +61,11 @@ class Comment
      */
     private $reportComments;
 
+    /**
+     * @ORM\Column(type="string", length=20, nullable=true)
+     */
+    private $status;
+
     public function __construct()
     {
         $this->comments = new ArrayCollection();
@@ -219,6 +224,23 @@ class Comment
                 $reportComment->setComment(null);
             }
         }
+
+        return $this;
+    }
+
+    public function __toString()
+    {
+        return 'Комментарий: ' .$this->id;
+    }
+
+    public function getStatus(): ?string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(?string $status): self
+    {
+        $this->status = $status;
 
         return $this;
     }

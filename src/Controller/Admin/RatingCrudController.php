@@ -4,6 +4,9 @@ namespace App\Controller\Admin;
 
 use App\Entity\Rating;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 
 class RatingCrudController extends AbstractCrudController
 {
@@ -12,14 +15,15 @@ class RatingCrudController extends AbstractCrudController
         return Rating::class;
     }
 
-    /*
+
     public function configureFields(string $pageName): iterable
     {
         return [
-            IdField::new('id'),
-            TextField::new('title'),
-            TextEditorField::new('description'),
+            AssociationField::new('customer'),
+            AssociationField::new('additionalInfo'),
+            NumberField::new('evaluation')->hideWhenUpdating(),
+            DateField::new('date'),
         ];
     }
-    */
+
 }

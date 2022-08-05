@@ -4,6 +4,8 @@ namespace App\Controller\Admin;
 
 use App\Entity\Statistic;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 
 class StatisticCrudController extends AbstractCrudController
 {
@@ -12,14 +14,14 @@ class StatisticCrudController extends AbstractCrudController
         return Statistic::class;
     }
 
-    /*
+
     public function configureFields(string $pageName): iterable
     {
         return [
-            IdField::new('id'),
-            TextField::new('title'),
-            TextEditorField::new('description'),
+            AssociationField::new('product'),
+            AssociationField::new('additionalInfo'),
+            DateTimeField::new('dateVisit')
         ];
     }
-    */
+
 }
