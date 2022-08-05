@@ -73,6 +73,11 @@
                         <a type="button" class="btn btn-warning" href="{{ path('app_profile') }}">Профиль</a>
 
                         <a type="button" class="btn btn-danger" href="{{ path('app_logout') }}">Выход</a>
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <a type="button" class="btn btn-info" href="{{ path('app_application_index') }}">Заявки</a>
+
+                            <a type="button" class="btn btn-info" href="{{ path('app_source_goods_index') }}">Предложения</a>
+                        {% endif %}
                         </p>
                     {% else %}
                         <a type="button" class="btn btn-outline-light me-2" href="{{ path('app_login') }}">Авторизация</a>

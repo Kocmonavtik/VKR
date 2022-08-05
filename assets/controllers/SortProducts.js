@@ -36,26 +36,14 @@ $(document).ready(function () {
         let value = select.options[select.selectedIndex].value;
         sendajax(controller, value, page);
     })
-   /* const controller = "/about/filters";
-    let select = document.getElementById("selectSort");
-    let value = select.options[select.selectedIndex].value;
-    sendajax(controller, value)*/
 });
 
 function sendajax(controller, valueFilter, page)
 {
-    /*let data = new FormData();
-    data.append('filter', valueFilter);
-    data.append('page', page);*/
 
     $.ajax({
         url: controller,
         type: 'GET',
-       /* dataType: 'json',
-        contentType: false,
-        cache: false,
-        processData: false,*/
-        //data: data,
         data: {
           page: page,
           filter: valueFilter
@@ -93,12 +81,10 @@ function buildHtml(response, page)
             divCarousel.dataset.bsRide = 'carousel';
             let divCarouselIndicators = document.createElement('div');
             divCarouselIndicators.className = "carousel-indicators";
-            //divCarouselIndicators.id='images('+ response.pagination[i].id +')';
             let divCarouselInner = document.createElement('div');
             divCarouselInner.className = "carousel-inner";
 
 
-            //$("#productList").append(elementOne)
             var items = response.pagination[i].images;
             var count = items.length
             for (var j = 0; j < count; ++j) {
@@ -149,8 +135,8 @@ function buildHtml(response, page)
             infoProduct.className = "card-body";
             let innerInfoProduct =
                 '<h5 class="card-title"><a  class="text-decoration-none" href="' + link + '">' + response.pagination[i].name + '</a></h5>\n' +
-                '<h5 class="card-title">Рейтинг: ' + response.ratingProducts[id] + '</h5>\n' +
-                '<h5 class="card-title">Лучшая цена: ' + response.productMinValue[id] + '</h5>\n';
+                '<h5 class="card-title">Рейтинг: ' + Number(response.ratingProducts[id]).toFixed(1) + '</h5>\n' +
+                '<h5 class="card-title">Лучшая цена: ' + Number(response.productMinValue[id]).toFixed(0) + '</h5>\n';
             let arrayProperties = '';
             for (var key in response.pagination[i].properties) {
                 arrayProperties += '<p class="card-text">' + key + ': ' + response.pagination[i].properties[key] + '</p>'
@@ -166,39 +152,16 @@ function buildHtml(response, page)
             divCarousel.append(divCarouselIndicators);
             divCarousel.append(divCarouselInner);
             divCarouselInner.innerHTML += buttons;
-
-           /* let pagination = '<div class="text-center d-flex justify-content-center">\n' +
-                '        {{ knp_pagination_render(' + response.pagination + ') }}' +
-                '    </div>'
-            $("#productList").after(pagination);*/
         }
-       /* let pagination = document.createElement('nav');
-        pagination.className = "text-center d-flex justify-content-center";
-        let ulElement = document.createElement('ul');
-        ulElement.className = "pagination";*/
 
-       /* let previous = ' <li class="page-item">\n' +
-            '      <a class="page-link" href="#" aria-label="Previous">\n' +
-            '        <span aria-hidden="true">&laquo;</span>\n' +
-            '      </a>\n' +
-            '    </li>';
-        let next = '<li class="page-item">\n' +
-            '      <a class="page-link" href="#" aria-label="Next">\n' +
-            '        <span aria-hidden="true">&raquo;</span>\n' +
-            '      </a>\n' +
-            '    </li>';*/
         let pageItems = '';
-        for (var j = 0; j < response.pagination.length; ++j) {
+        for (var j = 0; j < response.colPages; ++j) {
             if (j === (page - 1)) {
                 pageItems += '  <li class="page-item active"><a class="page-link" href="#">' + (j + 1) + '</a></li>'
             } else {
                 pageItems += '  <li class="page-item"><a class="page-link" href="#">' + (j + 1) + '</a></li>'
             }
         }
-        //$("#paginationList").append("previous + pageItems + next");
         $("#paginationList").append(pageItems);
-      /*  ulElement.innerHTML = previous + pageItems + next;
-        pagination.append(ulElement);
-        $("#productList").after(pagination);*/
     }
 }

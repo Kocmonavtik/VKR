@@ -2,7 +2,9 @@
 
 namespace App\Repository;
 
+use App\Entity\Product;
 use App\Entity\Rating;
+use App\Entity\Users;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -37,6 +39,17 @@ class RatingRepository extends ServiceEntityRepository
         if ($flush) {
             $this->getEntityManager()->flush();
         }
+    }
+    public function getRatingCurrentUser(Product $product, Users $user)
+    {
+        $builder = $this->createQueryBuilder('r')
+            ->leftJoin('r.additionalInfo', 'ai')
+            ->leftJoin('ai.product', 'p')
+            ->where('p.id=:id')
+            ->setParameter('id', $product->getId())
+            ->andWhere('r.customer= :user')
+            ->setParameter('user', $user);
+        return $builder->getQuery()->getResult();
     }
 
 //    /**

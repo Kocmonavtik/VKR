@@ -21,6 +21,19 @@ class FilterType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
+            ->add('selectSort', ChoiceType::class, [
+                'choices' => [
+                    'Рейтингу' => 'rating',
+                    'Цене по возрастанию' => 'priceUp',
+                    'Цене по убыванию' => 'priceDown',
+                ],
+                'attr' => [
+                    'class' => 'form-select',
+                    'aria-label' => 'Sort',
+                    'id' => 'selectSort'
+                ],
+                'label' => 'Отсортировать по:'
+            ])
            ->add('minPriceValue', NumberType::class, [
                'empty_data' => '0',
                'required' => false,

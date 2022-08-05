@@ -55,6 +55,7 @@ class RegistrationController extends AbstractController
                     'registrationForm'=> $form->createView(),
                 ])
             }*/
+            $user->setAvatar('avatar/img.png');
             $entityManager->persist($user);
             $entityManager->flush();
             // do anything else you need here, like send an email

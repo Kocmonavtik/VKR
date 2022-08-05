@@ -24,9 +24,14 @@ class Statistic
 
     /**
      * @ORM\ManyToOne(targetEntity=AdditionalInfo::class, inversedBy="statistics")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\JoinColumn(nullable=true)
      */
     private $additionalInfo;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Product::class, inversedBy="statistics")
+     */
+    private $product;
 
     public function getId(): ?int
     {
@@ -53,6 +58,18 @@ class Statistic
     public function setAdditionalInfo(?AdditionalInfo $additionalInfo): self
     {
         $this->additionalInfo = $additionalInfo;
+
+        return $this;
+    }
+
+    public function getProduct(): ?Product
+    {
+        return $this->product;
+    }
+
+    public function setProduct(?Product $product): self
+    {
+        $this->product = $product;
 
         return $this;
     }

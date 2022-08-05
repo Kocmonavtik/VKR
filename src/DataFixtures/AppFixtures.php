@@ -41,7 +41,7 @@ class AppFixtures extends Fixture
     public function __construct(UserPasswordHasherInterface $passwordHasher, AdditionalInfoRepository $repository)
     {
         $this->passwordHasher = $passwordHasher;
-        $this->repository=$repository;
+        $this->repository = $repository;
     }
 
     public function load(ObjectManager $manager): void
@@ -57,15 +57,78 @@ class AppFixtures extends Fixture
         $manager->persist($user);
         $manager->flush();
 
+        $user1 = new Users();
+        $user1->setEmail('test1Email@emal.com');
+        $user1->setPassword($this->passwordHasher->hashPassword($user1, '123456'));
+        $user1->setRoles(['ROLE_USER']);
+        $user1->setAvatar('avatar/img.png');
+        $user1->setGender('male');
+        $user1->setName('Bell');
+        $manager->persist($user1);
+        $manager->flush();
+
         $user2 = new Users();
         $user2->setEmail('test2Email@emal.com');
-        $user2->setPassword($this->passwordHasher->hashPassword($user, '123456'));
-        $user2->setRoles(['ROLE_CLIENT']);
+        $user2->setPassword($this->passwordHasher->hashPassword($user2, '123456'));
+        $user2->setRoles(['ROLE_USER']);
         $user2->setAvatar('avatar/img.png');
         $user2->setGender('male');
         $user2->setName('Kocmonavtik');
         $manager->persist($user2);
         $manager->flush();
+
+
+        $user3 = new Users();
+        $user3->setEmail('test3Email@emal.com');
+        $user3->setPassword($this->passwordHasher->hashPassword($user3, '123456'));
+        $user3->setRoles(['ROLE_USER']);
+        $user3->setAvatar('avatar/img.png');
+        $user3->setGender('male');
+        $user3->setName('Alex');
+        $manager->persist($user3);
+        $manager->flush();
+
+
+        $user4 = new Users();
+        $user4->setEmail('test4Email@emal.com');
+        $user4->setPassword($this->passwordHasher->hashPassword($user4, '123456'));
+        $user4->setRoles(['ROLE_USER']);
+        $user4->setAvatar('avatar/img.png');
+        $user4->setGender('male');
+        $user4->setName('Bellka');
+        $manager->persist($user4);
+        $manager->flush();
+
+        $user5 = new Users();
+        $user5->setEmail('test5Email@emal.com');
+        $user5->setPassword($this->passwordHasher->hashPassword($user5, '123456'));
+        $user5->setRoles(['ROLE_USER']);
+        $user5->setAvatar('avatar/img.png');
+        $user5->setGender('male');
+        $user5->setName('Алексей');
+        $manager->persist($user5);
+        $manager->flush();
+
+        $user6 = new Users();
+        $user6->setEmail('test6Email@emal.com');
+        $user6->setPassword($this->passwordHasher->hashPassword($user6, '123456'));
+        $user6->setRoles(['ROLE_USER']);
+        $user6->setAvatar('avatar/img.png');
+        $user6->setGender('male');
+        $user6->setName('Александр');
+        $manager->persist($user6);
+        $manager->flush();
+
+        $adminUser = new Users();
+        $adminUser->setEmail('adminEmail@emal.com');
+        $adminUser->setPassword($this->passwordHasher->hashPassword($adminUser, '123456'));
+        $adminUser->setRoles(['ROLE_ADMIN']);
+        $adminUser->setAvatar('avatar/img.png');
+        $adminUser->setGender('male');
+        $adminUser->setName('Kosmo');
+        $manager->persist($adminUser);
+        $manager->flush();
+
 
         //Создание магазина
         $store = new Store();
@@ -78,7 +141,7 @@ class AppFixtures extends Fixture
         $manager->flush();
 
         $store1 = new Store();
-        $store1->setCustomer($user2);
+        $store1->setCustomer($user);
         $store1->setNameStore('MarketShop');
         $store1->setDescription('Магазин одежды');
         $store1->setLogo('storeLogo/img.png');
@@ -87,7 +150,7 @@ class AppFixtures extends Fixture
         $manager->flush();
 
         $store2 = new Store();
-        $store2->setCustomer($user2);
+        $store2->setCustomer($user);
         $store2->setNameStore('ShopHouse');
         $store2->setDescription('Shopping house');
         $store2->setLogo('storeLogo/img.png');
@@ -101,6 +164,7 @@ class AppFixtures extends Fixture
         $sourceGoods->setCustomer($user);
         $sourceGoods->setStore($store);
         $sourceGoods->setUrl('http://b12.skillum.ru/bitrix/catalog_export/intarocrm.xml');
+        $sourceGoods->setStatus('processed');
         $manager->persist($sourceGoods);
         $manager->flush();
 
@@ -122,6 +186,9 @@ class AppFixtures extends Fixture
         $xmlCategories = $simpleXml->shop->categories->category;
         $categories = [];
         foreach ($xmlCategories as $section) {
+            if ((int) $section->attributes()->id === 9) {
+                continue;
+            }
             $category = new Category();
             $category->setName(trim((string) $section));
             $xmlId = (string) $section->attributes()->id ?? null;
@@ -160,20 +227,30 @@ class AppFixtures extends Fixture
             if (!$xmlOffer->param) {
                 continue;
             }
+            if ((int) $xmlOffer->categoryId === 9) {
+                continue;
+            }
             $offerXmlId = (string) $xmlOffer->attributes()->id;
             $productXmlId = (string) $xmlOffer->attributes()->productId;
             $categoryXmlId = (string) $xmlOffer->categoryId;
             $vendorXmlName = (string) $xmlOffer->vendor;
             //$paramXml = (string) $xmlOffer->param;
+            if (empty($vendorXmlName)) {
+                $vendorXmlName = 'Не брендированный';
+            }
 
             //Запись в производителя
             if (!isset($manufacturers[$vendorXmlName])) {
                 $manufacturer = new Manufacturer();
-                $tmp = htmlspecialchars_decode($vendorXmlName);
-                if (preg_match('/"([^"]+)"/', $tmp, $m)) {
-                    $manufacturer->setName($m[1]);
-                } else {
+                if ($vendorXmlName === 'Не брендированный') {
                     $manufacturer->setName($vendorXmlName);
+                } else {
+                    $tmp = htmlspecialchars_decode($vendorXmlName);
+                    if (preg_match('/"([^"]+)"/', $tmp, $m)) {
+                        $manufacturer->setName($m[1]);
+                    } else {
+                        $manufacturer->setName($vendorXmlName);
+                    }
                 }
                 $manager->persist($manufacturer);
                 $manufacturers[$vendorXmlName] = $manufacturer;
@@ -181,14 +258,14 @@ class AppFixtures extends Fixture
                 $manufacturer = $manufacturers[$vendorXmlName];
             }
             //Запись в товар
-            if (!isset($products[$productXmlId])) {
+            if (!isset($products[$productXmlId][0])) {
                 $product = new Product();
                 $product->setName((string) $xmlOffer->name);
                 $product->setManufacturer($manufacturer);
                 $product->addCategory($categories[(string)$xmlOffer->categoryId]);
                 $manager->persist($product);
-                $products[$productXmlId] = $product;
-
+                $products[$productXmlId][0] = $product;
+                $products[$productXmlId][1] = 1;
 
                 //Работа с характеристиками
                 //$stack = array();
@@ -215,39 +292,15 @@ class AppFixtures extends Fixture
                         $manager->persist($propertyProduct);
                     }
                 }
-                //var_dump($properties);
-
-                //$jsonParameter = json_encode($stack, JSON_UNESCAPED_UNICODE);
-               // $items=json_decode($jsonParameter);;
-               /* foreach($items as $item){
-                    //var_dump(key($item));
-                    var_dump($item);
-                }*/
-                /*$product->setParameter($stack);*/
-               /* $manager->persist($product);
-                $products[$productXmlId] = $product;*/
-                //var_dump($properties);
-                /*foreach ($properties as $property) {
-                    //var_dump($property);
-                    $item = new \App\Entity\Property();
-                    $item->setName($property[0]);
-                    $manager->persist($item);
-                    $propertyProduct = new PropertyProduct();
-                    $propertyProduct->setProduct($product);
-                    $propertyProduct->setProperty($item);
-                    $propertyProduct->setValue($property[1]);
-                    $manager->persist($propertyProduct);
-                }*/
             } else {
-                $product = $products[$productXmlId];
+                $product = $products[$productXmlId][0];
+                $products[$productXmlId][1]++;
             }
+            $additionalInfo = new AdditionalInfo();
+            $additionalInfo->setUrl((string)$xmlOffer->url);
             //Запись в дополнительную информацию
             //if (!isset($additionalInfos[$productXmlId])) {
-                $additionalInfo = new AdditionalInfo();
-                $additionalInfo->setUrl((string)$xmlOffer->url);
-
-                $randStore = mt_rand(1, 3);
-            switch ($randStore) {
+            switch ($products[$productXmlId][1]) {
                 case 1:
                     $additionalInfo->setStore($store);
                     break;
@@ -257,9 +310,9 @@ class AppFixtures extends Fixture
                 case 3:
                     $additionalInfo->setStore($store2);
                     break;
+                default:
+                    continue 2;
             }
-
-                //$additionalInfo->setStore($store);
                 $additionalInfo->setAverageRating(0);
                 $additionalInfo->setDateUpdate(new \DateTime('now'));
                 $additionalInfo->setPrice((float)$xmlOffer->price + mt_rand(100, 1500));
@@ -271,16 +324,31 @@ class AppFixtures extends Fixture
                 $additionalInfo->setImage([$stack]);
 
                 $rndStatistic = random_int(100, 300);
-                for($i=0; $i<$rndStatistic; ++$i){
-                    $statistic= new Statistic();
-                    $statistic->setAdditionalInfo($additionalInfo);
-                    $statistic->setDateVisit(new \DateTime('now'));
-                    $manager->persist($statistic);
-                }
+            for ($i = 0; $i < $rndStatistic; ++$i) {
+                $statistic = new Statistic();
+                $statistic->setAdditionalInfo($additionalInfo);
+                $statistic->setDateVisit(new \DateTime('now'));
+                $statistic->setProduct($product);
+                $manager->persist($statistic);
+            }
 
                 $manager->persist($additionalInfo);
+            switch ($products[$productXmlId][1]) {
+                case 1:
+                    $userComment1 = $user1;
+                    $userComment2 = $user2;
+                    break;
+                case 2:
+                    $userComment1 = $user3;
+                    $userComment2 = $user4;
+                    break;
+                case 3:
+                    $userComment1 = $user5;
+                    $userComment2 = $user6;
+                    break;
+            }
                 $comment = new Comment();
-                $comment->setCustomer($user);
+                $comment->setCustomer($userComment1);
                 $comment->setAdditionalInfo($additionalInfo);
                 $comment->setDate(new \DateTime('now'));
                 $comment->setText('Тестовый отзыв');
@@ -290,19 +358,19 @@ class AppFixtures extends Fixture
                 $responseComment->setDate(new \DateTime('now'));
                 $responseComment->setAdditionalInfo($additionalInfo);
                 $responseComment->setResponse($comment);
-                $responseComment->setCustomer($user);
+                $responseComment->setCustomer($userComment2);
                 $manager->persist($responseComment);
 
                 $rating1 = new Rating();
                 $rating1->setAdditionalInfo($additionalInfo);
-                $rating1->setCustomer($user);
+                $rating1->setCustomer($userComment1);
                 $rating1->setEvaluation(mt_rand(1, 5));
                 $rating1->setDate(new \DateTime('now'));
                 $manager->persist($rating1);
 
                 $rating2 = new Rating();
                 $rating2->setAdditionalInfo($additionalInfo);
-                $rating2->setCustomer($user2);
+                $rating2->setCustomer($userComment2);
                 $rating2->setEvaluation(mt_rand(1, 5));
                 $rating2->setDate(new \DateTime('now'));
                 $manager->persist($rating2);

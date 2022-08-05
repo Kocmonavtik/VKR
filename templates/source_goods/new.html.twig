@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New SourceGoods{% endblock %}
+
+{% block body %}
+    <h1>Create new SourceGoods</h1>
+
+    {{ include('source_goods/_form.html.twig') }}
+
+    <a href="{{ path('app_source_goods_index') }}">back to list</a>
+{% endblock %}

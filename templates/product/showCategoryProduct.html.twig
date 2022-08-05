@@ -4,14 +4,15 @@
 
 {% block body %}
     <div class="container mt-5">
-        <p>Отсортировать по:
-            <select class="form-select" aria-label="Sort" id="selectSort">
+       {# <p>Отсортировать по:#}
+
+            {#<select class="form-select" aria-label="Sort" id="selectSort">
                 <option selected value="rating">Рейтингу</option>
                 <option value="priceUp">Цене по возрастанию</option>
                 <option value="priceDown">Цене по убыванию</option>
-                <option value="popularity">Популярности</option>
-            </select>
-        </p>
+              #}{#  <option value="popularity">Популярности</option>#}{#
+            </select>#}
+       {# </p>#}
         <div class="d-flex flex-nowrap">
             <div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark" style="width: 280px;">
                 <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
@@ -19,12 +20,16 @@
                     <span class="fs-4">Фильтрация</span>
                 </a>
                 <hr>
+                {% if Filters %}
+                    <div class="text-center">
+                        <a type="button" class="btn btn-danger" href="{{ path('product_category', {'id': category.id}) }}">Убрать фильтрацию</a>
+                    </div>
+                {% endif %}
                 <ul class="nav nav-pills mb-auto">
                     {% if Filters %}
-                        <a type="button" class="btn btn-danger" href="{{ path('product_category', {'id': category.id}) }}">Убрать фильтрацию</a>
                     {% endif %}
                     {{ form_start(form) }}
-                    {{ form_widget(form) }}
+                        {{ form_widget(form) }}
                     {{ form_end(form) }}
                 </ul>
                 {#<hr>#}
@@ -71,10 +76,10 @@
                                 <div class="col-md-8">
                                     <div class="card-body">
                                         <h5 class="card-title"><a  class="text-decoration-none" href="{{ path('app_product_show', {'id': product.id}) }}">{{ product.name }}</a></h5>
-                                        <h5 class="card-title">Средняя оценка: {{ ratingProducts[product.id] }}</h5>
-                                        <h5 class="card-title">Лучшая цена: {{ minProductPrice[product.id] }}</h5>
-                                        {% for property in properties[product.id] %}
-                                            <p class="card-text">{{ property.property.name }}: {{ property.value }}</p>
+                                        <h5 class="card-title">Средняя оценка: {{ ratingProducts[product.id]|round(1)}}</h5>
+                                        <h5 class="card-title">Лучшая цена: {{ minProductPrice[product.id]|round(2) }}</h5>
+                                        {% for property in properties[product.id] |keys %}
+                                            <p class="card-text">{{ property }}: {{ properties[product.id][property] }}</p>
                                         {% endfor %}
                                     </div>
                                 </div>
@@ -90,6 +95,7 @@
         </div>
     </div>
     <div class="text-center d-flex justify-content-center">
-        {{ knp_pagination_render(pagination) }}
+        {{ knp_pagination_render(pagination)}}
+     {#   '@KnpPaginator/Pagination/bootstrap_v5_pagination.html.twig'#}
     </div>
 {% endblock %}

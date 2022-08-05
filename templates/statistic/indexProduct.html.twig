@@ -49,8 +49,8 @@
                                 <div class="card-body">
                                     <p class="card-title">Производитель: {{ product.manufacturer.name }}</p>
                                     <p class="card-text">О товаре:</p>
-                                    {% for property in product.propertyProducts %}
-                                        <p class="card-text">{{ property.property.name }}: {{ property.value }}</p>
+                                    {% for property in properties|keys %}
+                                        <p class="card-text">{{ property }}: {{ properties[property] }}</p>
                                     {% endfor %}
                                 </div>
                             </div>

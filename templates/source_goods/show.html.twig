@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}SourceGoods{% endblock %}
+
+{% block body %}
+    <h1>SourceGoods</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ source_good.id }}</td>
+            </tr>
+            <tr>
+                <th>Url</th>
+                <td>{{ source_good.url }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_source_goods_index') }}">back to list</a>
+
+    <a href="{{ path('app_source_goods_edit', {'id': source_good.id}) }}">edit</a>
+
+    {{ include('source_goods/_delete_form.html.twig') }}
+{% endblock %}

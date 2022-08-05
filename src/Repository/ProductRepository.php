@@ -61,9 +61,10 @@ class ProductRepository extends ServiceEntityRepository
 
     public function getProductsWithFilter(array $options, $origCategory)
     {
-        $counter = 2;
+        $counter = 3;
         $minPrice = $options['minPriceValue'];
         $maxPrice = $options['maxPriceValue'];
+        $sort = $options['selectSort'];
         if (empty($options['category'])) {
             $categories = $this->categoryRepository->findBy(['parent' => $origCategory->getId()]);
             if ($categories) {
@@ -85,12 +86,12 @@ class ProductRepository extends ServiceEntityRepository
         }
 
         $builder = $this->createQueryBuilder('p')
-            ->distinct('true')
             ->leftJoin('p.propertyProducts', 'pp')
             ->leftJoin('pp.property', 'prop')
             ->leftJoin('p.category', 'c')
             ->leftJoin('p.manufacturer', 'm')
             ->leftJoin('p.additionalInfos', 'ai')
+            ->leftJoin('ai.ratings', 'r')
             ->where('ai.price between :min and :max')
             ->setParameter('min', $minPrice)
             ->setParameter('max', $maxPrice);
@@ -123,33 +124,56 @@ class ProductRepository extends ServiceEntityRepository
                 }
             }
         }
+        $builder->groupBy('p.id');
+        switch ($sort) {
+            case 'rating':
+                $builder->orderBy('avg(r.evaluation)', 'DESC');
+                break;
+            case 'priceUp':
+                $builder->orderBy('min(ai.price)', 'ASC');
+                break;
+            case 'priceDown':
+                $builder->orderBy('min(ai.price)', 'DESC');
+                break;
+        }
         return $builder->getQuery()->getResult();
     }
 
-    public function sortProductRating()
+    public function sortProductRating($search)
     {
         $builder = $this->createQueryBuilder('p')
             ->leftJoin('p.additionalInfos', 'ai')
-            ->leftJoin('ai.ratings', 'r')
-            ->groupBy('p.id')
+            ->leftJoin('ai.ratings', 'r');
+        if ($search !== null) {
+            $builder->where('LOWER(p.name) LIKE LOWER(:query)')
+                ->setParameter('query', '%' . $search . '%');
+        }
+            $builder->groupBy('p.id')
             ->orderBy('avg(r.evaluation)', 'DESC');
         return $builder->getQuery()->getResult();
     }
-    public function sortProductMinPrice()
+    public function sortProductMinPrice($search)
     {
         $builder = $this->createQueryBuilder('p')
-            ->leftJoin('p.additionalInfos', 'ai')
-            ->groupBy('p.id')
+            ->leftJoin('p.additionalInfos', 'ai');
+        if ($search !== null) {
+            $builder->where('LOWER(p.name) LIKE LOWER(:query)')
+                ->setParameter('query', '%' . $search . '%');
+        }
+           $builder->groupBy('p.id')
             ->orderBy('min(ai.price)', 'DESC');
         return $builder->getQuery()->getResult();
     }
-    public function sortProductMaxPrice()
+    public function sortProductMaxPrice($search)
     {
         $builder = $this->createQueryBuilder('p')
-            ->leftJoin('p.additionalInfos', 'ai')
-            ->groupBy('p.id')
+            ->leftJoin('p.additionalInfos', 'ai');
+        if ($search !== null) {
+            $builder->where('LOWER(p.name) LIKE LOWER(:query)')
+                ->setParameter('query', '%' . $search . '%');
+        }
+        $builder->groupBy('p.id')
             ->orderBy('min(ai.price)', 'ASC');
         return $builder->getQuery()->getResult();
     }
-
 }

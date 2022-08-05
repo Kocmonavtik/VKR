@@ -9,12 +9,12 @@
                 <option selected value="rating">Рейтингу</option>
                 <option value="priceUp">Цене по возрастанию</option>
                 <option value="priceDown">Цене по убыванию</option>
-                <option value="popularity">Популярности</option>
+              {#  <option value="popularity">Популярности</option>#}
             </select>
         </p>
-        {% if pagination is not empty %}
-            <div class="d-flex flex-column p-2 align-items-center" id="productList" >
-                {% for product in pagination %}
+      {#  {% if pagination is not empty %}#}
+            <div class="d-flex flex-column p-2 align-items-center" search="{{ search }}" id="productList" >
+              {#  {% for product in pagination %}
                     <div class="card mb-3" style="max-width: 840px;">
                         <div class="row g-0">
                             <div class="col-md-4">
@@ -63,13 +63,13 @@
                             </div>
                         </div>
                     </div>
-                {% endfor %}
+                {% endfor %}#}
             </div>
-        {% else %}
+     {#   {% else %}
             <div >
                 <p class="text-center text-warning">Товары не найдены!</p>
             </div>
-        {% endif %}
+        {% endif %}#}
     </div>
     <nav class="text-center d-flex justify-content-center">
         <ul class="pagination" id="paginationList">
@@ -79,6 +79,10 @@
     {#<div class="text-center d-flex justify-content-center">
         {{ knp_pagination_render(pagination) }}
     </div>#}
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('searchProductSort') }}
 {% endblock %}
 {#{% block javascripts %}
     {{ parent() }}

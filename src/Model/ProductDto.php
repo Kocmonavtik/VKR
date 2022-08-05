@@ -52,7 +52,11 @@ class ProductDto
     public function setProperties($propertyProduct): self
     {
         foreach ($propertyProduct as $item) {
-            $this->properties[$item->getProperty()->getName()] = $item->getValue();
+            if (empty($this->properties[$item->getProperty()->getName()])) {
+                $this->properties[$item->getProperty()->getName()] = (string) $item->getValue();
+            } else {
+                $this->properties[$item->getProperty()->getName()] .= ' ' . $item->getValue();
+            }
         }
         return $this;
     }

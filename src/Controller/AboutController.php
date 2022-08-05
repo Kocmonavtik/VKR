@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Entity\Product;
+use App\Entity\Statistic;
 use App\Model\ProductDto;
 use App\Repository\AdditionalInfoRepository;
 use App\Repository\CategoryRepository;
@@ -10,6 +12,7 @@ use App\Repository\ProductRepository;
 use App\Repository\PropertyProductRepository;
 use App\Service\SearchFunctions;
 use App\Service\ServiceRepository;
+use Doctrine\Persistence\ManagerRegistry;
 use Knp\Component\Pager\PaginatorInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,65 +24,81 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class AboutController extends AbstractController
 {
-    private $requestShow;
-    private $ResponceShow;
-    private $productRepository;
-    private $categoryRepository;
-    private $paginator;
-    //private $request;
-    private $additionalInfoRepository;
-    private $searchFunctions;
-    private $propertyProductRepository;
-    /*  private $manufacturerRepository;
-      private $propertyRepository;*/
-    private $commentRepository;
-    private $serviceRepository;
+    private ProductRepository $productRepository;
+    //private $categoryRepository;
+    private PaginatorInterface $paginator;
+    //private $additionalInfoRepository;
+    private SearchFunctions $searchFunctions;
+    //private $propertyProductRepository;
+    //private $commentRepository;
+    private ServiceRepository $serviceRepository;
+    private ManagerRegistry $doctrine;
 
     public function __construct(
         ProductRepository $productRepository,
-        CategoryRepository $categoryRepository,
+        //CategoryRepository $categoryRepository,
         PaginatorInterface $paginator,
-        AdditionalInfoRepository $additionalInfoRepository,
+        //AdditionalInfoRepository $additionalInfoRepository,
         SearchFunctions $searchFunctions,
-        PropertyProductRepository $propertyProductRepository,
-        /* ManufacturerRepository $manufacturerRepository,
-         PropertyRepository $propertyRepository,*/
-        CommentRepository $commentRepository,
-        ServiceRepository $serviceRepository
+        //PropertyProductRepository $propertyProductRepository,
+        //ManufacturerRepository $manufacturerRepository,
+        //PropertyRepository $propertyRepository,
+        //CommentRepository $commentRepository,
+        ServiceRepository $serviceRepository,
+        ManagerRegistry $doctrine
     ) {
         $this->productRepository = $productRepository;
-        $this->categoryRepository = $categoryRepository;
+        //$this->categoryRepository = $categoryRepository;
         $this->paginator = $paginator;
-        $this->additionalInfoRepository = $additionalInfoRepository;
+        //$this->additionalInfoRepository = $additionalInfoRepository;
         $this->searchFunctions = $searchFunctions;
-        $this->propertyProductRepository = $propertyProductRepository;
+        //$this->propertyProductRepository = $propertyProductRepository;
         /* $this->manufacturerRepository = $manufacturerRepository;
          $this->propertyRepository = $propertyRepository;*/
-        $this->commentRepository = $commentRepository;
+        //$this->commentRepository = $commentRepository;
         $this->serviceRepository = $serviceRepository;
+        $this->doctrine = $doctrine;
     }
 
 
 
 
 
-    /**
+   /* public function dev(): Response
+    {
+        $manager = $this->doctrine->getManager();
+        $products = $manager->getRepository(Product::class)->findAll();
+        $countStatistic = $this->serviceRepository->tmpCount();
+        $countsStatistic = [];
+        foreach ($countStatistic as $statistic) {
+            $countsStatistic[$statistic['id']] = $statistic['count'];
+        }
+        //var_dump($countsStatistic);
+        foreach ($products as $product) {
+            $count = (int) $countsStatistic[$product->getId()];
+            $rndStatistic = random_int($count, $count + 500);
+            for ($i = 0; $i < $rndStatistic; ++$i) {
+                $statistic = new Statistic();
+                $statistic->setProduct($product)
+                    ->setDateVisit(new \DateTime('now'));
+                $manager->persist($statistic);
+            }
+            $manager->flush();
+        }
+        $manager->flush();
+        return $this->render('about/index.html.twig', [
+            'controller_name' => 'about controller'
+        ]);
+    }*/
+
+   /**
      * @Route("/about", name="app_about")
      */
     public function index(): Response
     {
-        //$this->denyAccessUnlessGranted('ROLE_USER');
         return new RedirectResponse($this->generateUrl('app_product_index'));
-
-       /* {% if is_granted('ROLE_ADMIN') %}
-        <li class="nav-item">
-                            <a class="nav-link" href="{{ path('admin_dashboard') }}">Admin</a>
-                        </li>
-                        {% endif %}
-       is_granted('IS_AUTHENTICATED_FULLY'):// после авторизации текущей сессии
-       IS_AUTHENTICATED_REMEMBERED после ремембер ми и заходе в браузер
-       */
     }
+
     /**
      * @Route("/about/dev", name="app_product_index_dev", methods={"GET"})
      */
@@ -97,41 +116,39 @@ class AboutController extends AbstractController
      */
     public function getProductsWithFilter(Request $request): JsonResponse
     {
-        //$items = $this->searchFunctions->getCategories();
-        /*  switch ($filter){
-              case 'popularity':
-                  break;
-              case 'rating':
-                  break;
-              case 'priceUp':
-                  break;
-              case 'priceDown':
-                  break;
-          }*/
-        if(!empty($request->query->get('page'))){
+        $colElementsPerPage = 5;
+        if (!empty($request->query->get('page'))) {
             $page = $request->query->get('page');
-        }else{$page=1;}
-        if(!empty($request->query->get('filter'))){
-            $filter=$request->query->get('filter');
-        }else{$filter='popularity';}
-        switch ($filter){
+        } else {
+            $page = 1;
+        }
+        if (!empty($request->query->get('filter'))) {
+            $filter = $request->query->get('filter');
+        } else {
+            $filter = 'rating';
+        }
+        $search = null;
+        if (!empty($request->query->get('search'))) {
+            $search = $request->query->get('search');
+        }
+        switch ($filter) {
             case 'rating':
-                $products = $this->productRepository->sortProductRating();
+                $products = $this->productRepository->sortProductRating($search);
                 break;
             case 'priceUp':
-                $products = $this->productRepository->sortProductMaxPrice();
+                $products = $this->productRepository->sortProductMaxPrice($search);
                 break;
             case 'priceDown':
-                $products = $this->productRepository->sortProductMinPrice();
+                $products = $this->productRepository->sortProductMinPrice($search);
                 break;
             default:
                 $products = $this->productRepository->findAll();
         }
 
-        $dtoProducts=[];
-        foreach ($products as $product){
-            $productDto= new ProductDto();
-            $dtoProducts[]= $productDto->dtoFromProduct($product);
+        $dtoProducts = [];
+        foreach ($products as $product) {
+            $productDto = new ProductDto();
+            $dtoProducts[] = $productDto->dtoFromProduct($product);
         }
 
         $avgRatings = $this->serviceRepository->getAverageRatingAndMinPrice();
@@ -143,11 +160,12 @@ class AboutController extends AbstractController
         }
 
 
-        $pagination= $this->paginator->paginate(
+        $pagination = $this->paginator->paginate(
             $dtoProducts,
             $page,
-            5
+            $colElementsPerPage
         );
+        $colPages = ceil(count($dtoProducts) / $colElementsPerPage);
 
         return $this->json([
             'pagination' => $pagination,
@@ -155,7 +173,7 @@ class AboutController extends AbstractController
             'productMinValue' => $minPrices,
             'filter' => $filter,
             'page' => $page,
+            'colPages' => $colPages
         ]);
     }
-
 }

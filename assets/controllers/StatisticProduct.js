@@ -63,9 +63,11 @@ function createChart(controller, dataStatistic, stores, chart, productId ,dateFi
                 }
                 let dataMas = [];
                 let backgroundColorChart = [];
+                let labels = [];
                 for (var key in response.result) {
                     dataMas.push(response.result[key])
                     backgroundColorChart.push(createRandomColor())
+                    labels.push(key);
                    /* let datasetElement = {
                         label: labelText,
                         backgroundColor: createRandomColor(),
@@ -73,8 +75,7 @@ function createChart(controller, dataStatistic, stores, chart, productId ,dateFi
                     }
                     datasetsMas.push(datasetElement);*/
                 }
-
-                chart.data.labels = stores;
+                chart.data.labels = labels;
                 chart.data.datasets = [{
                     label: labelText,
                     backgroundColor: createRandomColor(),

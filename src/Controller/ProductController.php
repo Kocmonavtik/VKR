@@ -6,10 +6,13 @@ use App\Entity\Category;
 use App\Entity\Comment;
 use App\Entity\Product;
 use App\Entity\PropertyProduct;
+use App\Entity\Rating;
+use App\Entity\Statistic;
 use App\Form\CommentType;
 use App\Form\ProductType;
 use App\Form\ResponseCommentType;
 use App\Form\Type\FilterType;
+use App\Form\Type\SortType;
 use App\Repository\AdditionalInfoRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\CommentRepository;
@@ -17,7 +20,9 @@ use App\Repository\ManufacturerRepository;
 use App\Repository\ProductRepository;
 use App\Repository\PropertyProductRepository;
 use App\Repository\PropertyRepository;
+use App\Repository\RatingRepository;
 use App\Service\ServiceRepository;
+use Doctrine\Persistence\ManagerRegistry;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -37,6 +42,7 @@ class ProductController extends AbstractController
     private $productRepository;
     private $categoryRepository;
     private $paginator;
+    private ManagerRegistry $doctrine;
     //private $request;
     private $additionalInfoRepository;
     private $searchFunctions;
@@ -45,6 +51,7 @@ class ProductController extends AbstractController
     private $propertyRepository;*/
     private $commentRepository;
     private $serviceRepository;
+    private $ratingRepository;
 
     public function __construct(
         ProductRepository $productRepository,
@@ -56,7 +63,9 @@ class ProductController extends AbstractController
        /* ManufacturerRepository $manufacturerRepository,
         PropertyRepository $propertyRepository,*/
         CommentRepository $commentRepository,
-        ServiceRepository $serviceRepository
+        ServiceRepository $serviceRepository,
+        RatingRepository $ratingRepository,
+        ManagerRegistry $doctrine
     ) {
         $this->productRepository = $productRepository;
         $this->categoryRepository = $categoryRepository;
@@ -68,48 +77,17 @@ class ProductController extends AbstractController
         $this->propertyRepository = $propertyRepository;*/
         $this->commentRepository = $commentRepository;
         $this->serviceRepository = $serviceRepository;
+        $this->ratingRepository=$ratingRepository;
+        $this->doctrine = $doctrine;
     }
     /**
      * @Route("/", name="app_product_index", methods={"GET"})
      */
     public function index(Request $request): Response
     {
-       /* $items = $this->searchFunctions->getCategories();
-
-        $products = $this->productRepository->findAll();
-
-        $properties = [];
-        foreach ($products as $product) {
-            $properties[$product->getId()] = $product->getPropertyProducts();
-        }
-
-        $avgRatings = $this->serviceRepository->getAverageRatingAndMinPrice();
-        $ratingProducts = [];
-        $minPrices = [];
-        foreach ($avgRatings as $avgRating) {
-            $ratingProducts[$avgRating['product_id']] = $avgRating['avg'];
-            $minPrices[$avgRating['product_id']] = $avgRating['min'];
-        }
-
-        $images = $this->searchFunctions->getImages($products, 3);
-
-        $pagination = $this->paginator->paginate(
-            $products,
-            $request->query->getInt('page', 1),
-            5
-        );
-
-        return $this->render('product/index.html.twig', [
-            'pagination' => $pagination,
-            'categories' => $items,
-            'images' => $images,
-            'properties' => $properties,
-            'ratingProducts' => $ratingProducts,
-            'productMinValue' => $minPrices,
-        ]);*/
         $items = $this->searchFunctions->getCategories();
 
-        return $this->render('product/indexDev.html.twig', [
+        return $this->render('product/index.html.twig', [
             'categories' => $items,
         ]);
     }
@@ -120,61 +98,24 @@ class ProductController extends AbstractController
      */
     public function show(Product $product, Request $request): Response
     {
-        $responseForms=[];
+       $this->registerStatisticProduct($product);
+
         $offers[$product->getId()] = $this->additionalInfoRepository
             ->findBy(
                 ['product' => $product],
                 ['price' => 'ASC']
             );
-
-        $originalComments = [];
-        $countComments = 0;
-        $avgRating = 0;
-        foreach ($offers[$product->getId()] as $offer) {
-            $comments = $offer->getComments();
-            $avgRating += $offer->getAverageRating();
-            foreach ($comments as $comment) {
-                if (empty($comment->getResponse())) {
-                    $originalComments[] = $comment;
-                    ++$countComments;
-                }
-            }
+        if ($this->getUser()) {
+            $currentComment = $this->commentRepository->getOriginalCommentCurrentUser($product, $this->getUser());
+            $currentRating = $this->ratingRepository->getRatingCurrentUser($product, $this->getUser());
+        } else {
+            $currentComment = null;
+            $currentRating = null;
         }
 
-
-        $itemComment = new Comment();
-        $form = $this->createForm(CommentType::class, $itemComment);
-        if ($this->getUser()) {
-            $this->requestShow = $request;
-            $itemComment = new Comment();
-            $itemComment->setCustomer($this->getUser());
-            $form = $this->createForm(CommentType::class, $itemComment, array('product' => $product));
-            $form->handleRequest($request);
-
-            if ($form->isSubmitted() && $form->isValid()) {
-                $itemComment->setDate(new \DateTime('now'));
-                $this->commentRepository->add($itemComment, true);
-                return $this->redirectToRoute('app_product_show', ['id' => $product->getId()], Response::HTTP_SEE_OTHER);
-            }
-
-            $responseForms=[];
-            foreach ($originalComments as $comment){
-                $responceId=$comment->getId();
-                $itemComment=new Comment();
-                $itemComment->setCustomer($this->getUser());
-                $itemComment->setAdditionalInfo($comment->getAdditionalInfo());//$comment->getAdditionalInfo());
-                $itemComment->setResponse($comment);
-                $form = $this->createForm(ResponseCommentType::class, $itemComment, ['id'=>$responceId]);
-                $form->handleRequest($request);
-                $responseForms[$responceId]=$form->createView();
-
-                if($form->isSubmitted() && $form->isValid()){
-                    $itemComment->setDate(new \DateTime('now'));
-                    $this->commentRepository->add($itemComment, true);
-                    //return $this->redirectToRoute('app_product_show', ['id' => $product->getId()]);
-                    return $this->redirectToRoute('app_product_show', ['id' => $product->getId()], Response::HTTP_SEE_OTHER);
-                }
-            }
+        $avgRating = 0;
+        foreach ($offers[$product->getId()] as $offer) {
+            $avgRating += $offer->getAverageRating();
         }
 
 
@@ -189,10 +130,38 @@ class ProductController extends AbstractController
             $medianPrice = $medianOffer[0]->getPrice();
         }
 
-        //$properties[$product->getId()] = $this->propertyProductRepository->findBy(['product' => $product]);
-
         $avgRating = $avgRating / count($offers[$product->getId()]);
         $shops = $this->serviceRepository->getStoresProduct($product);
+        $comments=$this->serviceRepository->getComments($product->getId());
+        $originalComments = [];
+        $responseComments = [];
+        $count=0;
+        foreach ($comments as $commment){
+            if($commment['response_id'] === null){
+                $originalComments[$commment['id']] = $commment;
+                $count++;
+            }else{
+                $responseComments[$commment['response_id']][] = $commment;
+                $count++;
+            }
+        }
+        /* foreach ($propertyProduct as $item) {
+           if (empty($this->properties[$item->getProperty()->getName()])) {
+               $this->properties[$item->getProperty()->getName()] = (string) $item->getValue();
+           } else {
+               $this->properties[$item->getProperty()->getName()] .= ' ' . $item->getValue();
+           }
+       }*/
+        //$properties[$product->getId()] = $product->getPropertyProducts();
+        $propertyProduct = $product->getPropertyProducts();
+        $masPropertiesProduct = [];
+        foreach ($propertyProduct as $item) {
+            if (empty($masPropertiesProduct[$item->getProperty()->getName()])) {
+                $masPropertiesProduct[$item->getProperty()->getName()] = $item->getValue();
+            } else {
+                $masPropertiesProduct[$item->getProperty()->getName()] .= ' ' . $item->getValue();
+            }
+        }
 
 
         return $this->render('product/show.html.twig', [
@@ -200,14 +169,14 @@ class ProductController extends AbstractController
             'categories' => $items,
             'offers' => $offers,
             'median' => $medianPrice,
-            'comments' => $originalComments,
-            'countComments' => $countComments,
-            'form' => $form->createView(),
-            'request' => $request,
+            'originalComments' => $originalComments,
+            'responseComments' => $responseComments,
             'avgRating' => $avgRating,
-            'responseForms'=>$responseForms,
-            'user'=>$this->getUser(),
-            'shops'=>$shops
+            'shops' => $shops,
+            'currentComment' => $currentComment,
+            'currentRating' => $currentRating,
+            'count' => $count,
+            'properties' => $masPropertiesProduct
         ]);
     }
 
@@ -222,32 +191,33 @@ class ProductController extends AbstractController
         }
 
         $query = $request->query->get('q');
-        $products = $this->productRepository->search($query);
+        //$products = $this->productRepository->search($query);
         $items = $this->searchFunctions->getCategories();
-        $pagination = $this->paginator->paginate($products, $pageRequest, 5);
-        $images = $this->searchFunctions->getImages($products, 3);
+        //$pagination = $this->paginator->paginate($products, $pageRequest, 5);
+        //$images = $this->searchFunctions->getImages($products, 3);
 
-        $properties = [];
+      /*  $properties = [];
         foreach ($products as $product) {
             $properties[$product->getId()] = $this->propertyProductRepository->findBy(['product' => $product]);
-        }
-        $avgRatings = $this->serviceRepository->getAverageRatingAndMinPrice();
+        }*/
+   /*     $avgRatings = $this->serviceRepository->getAverageRatingAndMinPrice();
         $ratingProducts = [];
         $minPrices = [];
         foreach ($avgRatings as $avgRating) {
             $ratingProducts[$avgRating['product_id']] = $avgRating['avg'];
             $minPrices[$avgRating['product_id']] = $avgRating['min'];
-        }
+        }*/
 
 
         return $this->render('product/indexSearch.html.twig', [
-            'products' => $products,
+           /* 'products' => $products,*/
             'categories' => $items,
-            'pagination' => $pagination,
+            'search' => $query
+        /*    'pagination' => $pagination,
             'images' => $images,
             'properties' => $properties,
             'ratingProducts' => $ratingProducts,
-            'productMinValue' => $minPrices
+            'productMinValue' => $minPrices*/
         ]);
     }
 
@@ -318,12 +288,14 @@ class ProductController extends AbstractController
         }
 
         $images = $this->searchFunctions->getImages($products, 3);
-
-        if(!empty($request->query->get('filters'))) {
+        if (!empty($request->query->get('filters'))) {
             $pagination = $this->paginator->paginate($productsFilter, $pageRequest, 5);
-        }else{
+        } else {
             $pagination = $this->paginator->paginate($products, $pageRequest, 5);
         }
+
+       /* $sortForm = $this->createForm(SortType::class, null, []);
+        $sortForm->handleRequest($request);*/
 
         $form=$this->createForm(FilterType::class, null, [
             'manufacturer' => $manufacturers,
@@ -337,25 +309,34 @@ class ProductController extends AbstractController
             return $this->redirectToRoute(
                 'product_category', [
                 'id' => $category->getId(),
-                'filters' => $form->getData()
+                'filters' => $form->getData(),
             ],
                 Response::HTTP_SEE_OTHER
             );
         }
-
+        $masPropertiesProducts = [];
+        foreach ($properties as $key=>$propertiesProduct) {
+            foreach ($propertiesProduct as $property) {
+                if(empty($masPropertiesProducts[$key][$property->getProperty()->getName()])) {
+                    $masPropertiesProducts[$key][$property->getProperty()->getName()] = $property->getValue();
+                } else {
+                    $masPropertiesProducts[$key][$property->getProperty()->getName()] .= ' ' .$property->getValue();
+                }
+            }
+        }
         return $this->render('product/showCategoryProduct.html.twig', [
             'categories' => $items,
             'pagination' => $pagination,
             'images' => $images,
-            'properties' => $properties,
+            'properties' => $masPropertiesProducts,
             'manufacturers' => $manufacturers,
             'distinctProperties' => $distinctProperties,
             'parentCategories' => $parentCategories,
             'ratingProducts' => $ratingProducts,
             'minProductPrice' => $minPrices,
             'form' => $form->createView(),
-            'Filters'=>$isFilters,
-            'category'=>$category
+            'Filters' => $isFilters,
+            'category' => $category,
         ]);
     }
 
@@ -382,11 +363,26 @@ class ProductController extends AbstractController
         ]);
     }
 
+
+
+
+    private function registerStatisticProduct(Product $product)
+    {
+        $statistic = new Statistic();
+        $statistic->setProduct($product)
+            ->setDateVisit(new \DateTime('now'));
+        $manager = $this->doctrine->getManager();
+        $manager->persist($statistic);
+        $manager->flush($statistic);
+    }
+
+
+
     /**
      * @Route("/category/{id}/dev", name="product_category_dev", methods={"GET"})
      *
      */
-    public function ProductCategoryDev(
+   /* public function ProductCategoryDev(
         Category $category,
         Request $request
     ) {
@@ -477,7 +473,7 @@ class ProductController extends AbstractController
             'filters' => $request->query->get('filters')
 
         ]);
-    }
+    }*/
     /**
      * @Route("/new", name="app_product_new", methods={"GET", "POST"})
      */

@@ -7,9 +7,9 @@
         <div class="row">
             <div class="col-md-3 border-right">
                 <div class="d-flex flex-column align-items-center text-center p-3 py-5">
-                    <img class="rounded-circle mt-5" width="150px" src="{{ asset('upload/' ~ app.user.avatar) }}">
-                    <span class="font-weight-bold">{{ app.user.name }}</span>
-                    <span class="text-black-50">{{ app.user.email }}</span>
+                    <img class="rounded-circle mt-5" id="avatar" width="150px" src="{{ asset('upload/' ~ app.user.avatar) }}">
+                    <span class="font-weight-bold" id="username">{{ app.user.name }}</span>
+                    <span class="text-black-50" id="userEmail">{{ app.user.email }}</span>
                     <span> </span>
                     </div>
             </div>
@@ -17,36 +17,46 @@
                 <div class="p-3 py-5">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h4 class="text-right">Мой профиль</h4>
+                        <div class="alert alert-danger" hidden id="error"></div>
                     </div>
                     <div class="row mt-2">
-                        <div class="col-md-6"><label class="labels">Имя</label><input type="text" class="form-control" placeholder="name" value="{{ app.user.name }}"></div>
+                        <div class="col-md-6"><label class="labels">Имя</label><input type="text" class="form-control" id="inputName" placeholder="name" value="{{ app.user.name }}"></div>
                         <div class="col-md-6">
                             <label class="label"></label>Пол
                                 <select class="form-select" aria-label="genderData" id="selectGender">
-                                    <option value="nothing">Не выбрано</option>
-                                    <option selected value="rating">Муж</option>
-                                    <option value="visit">Жен</option>
+                                    {% if app.user.gender == 'male' %}
+                                        <option value="secret">Не выбрано</option>
+                                        <option selected value="male">Муж</option>
+                                        <option value="female">Жен</option>
+                                    {% elseif app.user.gender == 'female' %}
+                                        <option value="secret">Не выбрано</option>
+                                        <option value="male">Муж</option>
+                                        <option selected value="female">Жен</option>
+                                    {% else %}
+                                        <option selected value="secret">Не выбрано</option>
+                                        <option value="male">Муж</option>
+                                        <option value="female">Жен</option>
+                                    {% endif %}
                                 </select>
                             </p>
                         </div>
                     </div>
                     <div class="row mt-3">
-                        <div class="col-md-12"><label class="labels">Эл. почта</label><input type="text" class="form-control" placeholder="email@example.com" value="{{ app.user.email }}"></div>
+                        <div class="col-md-12"><label class="labels">Эл. почта</label><input type="text" class="form-control" id="inputEmail" placeholder="email@example.com" value="{{ app.user.email }}"></div>
                     </div>
                     <div class="row mt-3">
                         <div class="col-md-12">
                             <label for="formFile" class="form-label">Аватар</label>
-                            <input class="form-control" type="file" id="formFile">
+                            <input class="form-control" type="file" id="avatarFile">
                         </div>
                     </div>
-                    <div class="mt-3 text-center"><button class="btn btn-primary profile-button" type="button">Сохранить</button></div>
+                    <div class="mt-3 text-center"><button class="btn btn-primary profile-button" id="SaveProfile" type="button">Сохранить</button></div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="p-3 py-5">
                     <div class="d-flex justify-content-between align-items-center experience">
                         <span>Добавление магазина</span>
-                       {# <a type="button" class="btn btn-warning" data-bs-toggle="modal">Заявка</a>#}
                         <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#ApplicationModal">
                             Заявка
                         </button>
@@ -54,136 +64,194 @@
                     <br>
                     <div class="col-md-12">
                         <h5 class="text-right">Смена пароля</h5>
+                        <div class="alert alert-danger" hidden id="errorPass"></div>
+                        <div class="alert alert-success" hidden id="successPass">Пароль успешно изменён!</div>
                         <label class="labels">Текущий пароль</label>
-                        <input type="text" class="form-control" placeholder="Текущий пароль" value="">
+                        <input type="password" id="currentPassword" class="form-control" placeholder="Текущий пароль" value="">
                         <label class="labels mt-2">Новый пароль</label>
-                        <input type="text" class="form-control" placeholder="Новый пароль" value="">
+                        <input type="password" id="newPassword" class="form-control" placeholder="Новый пароль" value="">
                         <label class="labels mt-2">Повторите пароль</label>
-                        <input type="text" class="form-control" placeholder="Повторите пароль" value="">
+                        <input type="password" id="repeatPassword" class="form-control" placeholder="Повторите пароль" value="">
                     </div>
-                    <div class="mt-3 text-center"><button class="btn btn-warning profile-button" type="button">Сохранить</button></div>
+                    <div class="mt-3 text-center"><button class="btn btn-warning profile-button" id="SavePassword" type="button">Сохранить</button></div>
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-md-12 border-right">
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <!-- Grid row -->
-                        <div class="row">
-                            <!-- Grid column -->
-                            <div class="col-md-12">
-                                <h2 class="py-3 text-center font-bold font-up success-text">Заявки</h2>
+        {% if is_granted('ROLE_CLIENT') %}
+            <div class="row">
+                <a type="button" class="btn btn-success" href="{{ path('app_statistic') }}">К статистике</a>
+            </div>
+        {% endif %}
+        {% if application %}
+            <div class="row mt-3">
+                <div class="col-md-12 border-right">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <!-- Grid row -->
+                            <div class="row">
+                                <!-- Grid column -->
+                                <div class="col-md-12">
+                                    <h2 class="py-3 text-center font-bold font-up success-text">Заявки</h2>
+                                </div>
+                                <!-- Grid column -->
                             </div>
-                            <!-- Grid column -->
+                            <!-- Grid row -->
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                    <tr>
+                                        <th>Магазин</th>
+                                        <th>ФИО</th>
+                                        <th>URL магазина</th>
+                                        <th>Статус</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="applicationList">
+                                    {% for applic in app.user.applications %}
+                                        {% if applic.status == 'send' %}
+                                            <tr>
+                                                <td>{{ applic.nameStore }}</td>
+                                                <td>{{ applic.fullName }}</td>
+                                                <td>{{ applic.urlStore }}</td>
+                                                <td>Отправлена</td>
+                                            </tr>
+                                        {% elseif applic.status == 'consideration' %}
+                                            <tr class="table-warning">
+                                                <td>{{ applic.nameStore }}</td>
+                                                <td>{{ applic.fullName }}</td>
+                                                <td>{{ applic.urlStore }}</td>
+                                                <td>На рассмотрении</td>
+                                            </tr>
+                                        {% elseif applic.status == 'rejected' %}
+                                            <tr class="table-danger">
+                                                <td>{{ applic.nameStore }}</td>
+                                                <td>{{ applic.fullName }}</td>
+                                                <td>{{ applic.urlStore }}</td>
+                                                <td>Отклонена</td>
+                                            </tr>
+                                        {% elseif applic.status == 'accepted' %}
+                                            <tr class="table-success">
+                                                <td>{{ applic.nameStore }}</td>
+                                                <td>{{ applic.fullName }}</td>
+                                                <td>{{ applic.urlStore }}</td>
+                                                <td>Принята</td>
+                                            </tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                       {# <tr class="table-success">
+                                            <td>Market</td>
+                                            <td>Чаплыгин Иван Сергеевич</td>
+                                            <td>https://Market.ru</td>
+                                            <td>Принята</td>
+                                        </tr>
+                                        <tr>
+                                            <td>ShopHouse</td>
+                                            <td>Чаплыгин Иван Сергеевич</td>
+                                            <td>http://MarketHouse.ru</td>
+                                            <td>Отправлена</td>
+                                        </tr>
+                                        <tr class="table-warning">
+                                            <td>RusClothes</td>
+                                            <td>Чаплыгин Иван Сергеевич</td>
+                                            <td>http://ruClothes.ru</td>
+                                            <td>На рассмотрении</td>
+                                        </tr>
+                                        <tr class="table-danger">
+                                            <td>MarketMarket</td>
+                                            <td>Чаплыгин Иван Сергеевич</td>
+                                            <td>http://</td>
+                                            <td>Отклонена</td>
+                                        </tr>#}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                        <!-- Grid row -->
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
-                                <tr>
-                                    <th>Магазин</th>
-                                    <th>ФИО</th>
-                                    <th>URL магазина</th>
-                                    <th>Статус</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr class="table-success">
-                                    <td>Market</td>
-                                    <td>Чаплыгин Иван Сергеевич</td>
-                                    <td>https://Market.ru</td>
-                                    <td>Принята</td>
-                                </tr>
-                                <tr>
-                                    <td>ShopHouse</td>
-                                    <td>Чаплыгин Иван Сергеевич</td>
-                                    <td>http://MarketHouse.ru</td>
-                                    <td>Отправлена</td>
-                                </tr>
-                                <tr class="table-warning">
-                                    <td>RusClothes</td>
-                                    <td>Чаплыгин Иван Сергеевич</td>
-                                    <td>http://ruClothes.ru</td>
-                                    <td>На рассмотрении</td>
-                                </tr>
-                                <tr class="table-danger">
-                                    <td>MarketMarket</td>
-                                    <td>Чаплыгин Иван Сергеевич</td>
-                                    <td>http://</td>
-                                    <td>Отклонена</td>
-                                </tr>
-                                </tbody>
-                            </table>
+                    </div>
+                </div>
+            {% endif %}
+            {% if is_granted('ROLE_CLIENT') and application %}
+                <div class="col-md-12 border-right mt-3">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <!-- Grid row -->
+                            <div class="row">
+                                <!-- Grid column -->
+                                <div class="col-md-12">
+                                    <h2 class="py-3 text-center font-bold font-up success-text">Источники</h2>
+                                </div>
+                                <!-- Grid column -->
+                            </div>
+                            <!-- Grid row -->
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                    <tr>
+                                        <th>Магазин</th>
+                                        <th>URL файла</th>
+                                        <th>Статус</th>
+                                        <th>Действие</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="sourseList">
+                                    {% for source in app.user.sourceGoods %}
+                                        {% if source.status == 'nothing' %}
+                                            <tr id="SourceElement{{ source.id }}">
+                                                <td>{{ source.store.nameStore }}</td>
+                                                <td id="UrlSource{{ source.id }}">{{ source.url }}</td>
+                                                <td id="StatusSource{{ source.id }}">Нет источника</td>
+                                                <td>
+                                                    <button class="btn btn-info profile-button" id="Source{{ source.id }}"
+                                                            data-bs-toggle="modal" data-bs-target="#sourceModal"
+                                                            button="ChangeSource" type="button">Изменить ссылку
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        {% elseif source.status == 'progress' or source.status == 'processing' %}
+                                            <tr class="table-warning" id="SourceElement{{ source.id }}">
+                                                <td>{{ source.store.nameStore }}</td>
+                                                <td id="UrlSource{{ source.id }}">{{ source.url }}</td>
+                                                <td id="StatusSource{{ source.id }}">В очереди</td>
+                                                <td>
+                                                    <button class="btn btn-info profile-button" id="Source{{ source.id }}"
+                                                            data-bs-toggle="modal" data-bs-target="#sourceModal"
+                                                            button="ChangeSource" type="button">Изменить ссылку
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        {% elseif source.status == 'error' %}
+                                            <tr class="table-danger" id="SourceElement{{ source.id }}">
+                                                <td>{{ source.store.nameStore }}</td>
+                                                <td id="UrlSource{{ source.id }}">{{ source.url }}</td>
+                                                <td id="StatusSource{{ source.id }}">Ошибка при обработке</td>
+                                                <td>
+                                                    <button class="btn btn-info profile-button" id="Source{{ source.id }}"
+                                                            data-bs-toggle="modal" data-bs-target="#sourceModal"
+                                                            button="ChangeSource" type="button">Изменить ссылку
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        {% elseif source.status == 'processed' %}
+                                            <tr class="table-success" id="SourceElement{{ source.id }}">
+                                                <td>{{ source.store.nameStore }}</td>
+                                                <td id="UrlSource{{ source.id }}">{{ source.url }}</td>
+                                                <td id="StatusSource{{ source.id }}">Обработана</td>
+                                                <td>
+                                                    <button class="btn btn-info profile-button" id="Source{{ source.id }}"
+                                                            data-bs-toggle="modal" data-bs-target="#sourceModal"
+                                                            button="ChangeSource" type="button">Изменить ссылку
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <div class="col-md-12 border-right">
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <!-- Grid row -->
-                        <div class="row">
-                            <!-- Grid column -->
-                            <div class="col-md-12">
-                                <h2 class="py-3 text-center font-bold font-up success-text">Источники</h2>
-                            </div>
-                            <!-- Grid column -->
-                        </div>
-                        <!-- Grid row -->
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
-                                <tr>
-                                    <th>Магазин</th>
-                                    <th>URL файла</th>
-                                    <th>Статус</th>
-                                    <th>Действие</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr class="table-success">
-                                    <td>Market</td>
-                                    <td>https://Market.ru/xmlget</td>
-                                    <td>Обработана</td>
-                                    <td>
-                                        <button class="btn btn-info profile-button" type="button">Изменить ссылку</button>
-                                    </td>
-                                </tr>
-                                <tr class="table-warning">
-                                    <td>ShopHouse</td>
-                                    <td>http://MarketHouse.ru/xml</td>
-                                    <td>В очереди</td>
-                                    <td>
-                                        <button class="btn btn-info profile-button" type="button">Изменить ссылку</button>
-                                    </td>
-                                </tr>
-                                <tr class="table-danger">
-                                    <td>RusClothes</td>
-                                    <td>http://RusClothes/xml/current/get</td>
-                                    <td>Ошибка при обработке</td>
-                                    <td>
-                                        <button class="btn btn-info profile-button" type="button">Изменить ссылку</button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>MarketMarket</td>
-                                    <td></td>
-                                    <td>Нет источника</td>
-                                    <td>
-                                        <button class="btn btn-info profile-button" type="button">Изменить ссылку</button>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    </div>
+        {% endif %}
     </div>
 
     <div class="modal fade" id="ApplicationModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -194,7 +262,10 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form>
+                    <form id="applicationForm">
+                        <div class="mb-3">
+                            <div class="alert alert-danger" hidden id="errorModal"></div>
+                        </div>
                         <div class="mb-3">
                             <label for="recipient-name" class="col-form-label">ФИО</label>
                             <input type="text" class="form-control" id="FIO-modal">
@@ -205,23 +276,54 @@
                         </div>
                         <div>
                             <label for="formFile" class="form-label">Лого сайта</label>
-                            <input class="form-control" type="file" id="formFile">
+                            <input class="form-control" type="file" id="logoFile">
                         </div>
                         <div class="mb-3">
-                            <label for="recipient-name" class="col-form-label">Ссылка на XML файл</label>
-                            <input type="text" class="form-control" id="URL-xml-madal">
+                            <label for="recipient-name" class="col-form-label">Ссылка на магазин</label>
+                            <input type="text" class="form-control" id="URL-store-modal">
                         </div>
-                       {# <div class="mb-3">
-                            <label for="message-text" class="col-form-label">Message:</label>
-                            <textarea class="form-control" id="message-text"></textarea>
-                        </div>#}
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                    <button type="button" class="btn btn-primary">Отправить заявку</button>
+                    <button type="button" class="btn btn-secondary" id="closeModal" data-bs-dismiss="modal">Закрыть</button>
+                    <button type="button" id="sendApplication" class="btn btn-primary">Отправить заявку</button>
                 </div>
             </div>
         </div>
     </div>
+
+
+    <div class="modal fade" id="sourceModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="sourceModalLabel">Заявка</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="sourceForm">
+                        <div class="mb-3">
+                            <div class="alert alert-danger" hidden id="errorSourceModal"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="recipient-name" class="col-form-label">Ссылка на XML файл</label>
+                            <input type="text" class="form-control" id="URL-xml-modal">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="closeSourceModal" data-bs-dismiss="modal">Закрыть</button>
+                    <button type="button" id="sendSource" class="btn btn-primary">Отправить заявку</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('profileController') }}
 {% endblock %}

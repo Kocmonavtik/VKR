@@ -1,0 +1,83 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Application index{% endblock %}
+
+{% block body %}
+    <div class="container rounded bg-white mt-5 mb-5">
+        <div class="col-md-12 border-right">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <!-- Grid row -->
+                    <div class="row">
+                        <!-- Grid column -->
+                        <div class="col-md-12">
+                            <h2 class="py-3 text-center font-bold font-up success-text">Заявки</h2>
+                        </div>
+                        <!-- Grid column -->
+                    </div>
+                    <!-- Grid row -->
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Магазин</th>
+                                <th>ФИО</th>
+                                <th>URL магазина</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for application in applications %}
+                                <tr>
+                                    <td>{{ application.id }}</td>
+                                    <td>{{ application.nameStore }}</td>
+                                    <td>{{ application.fullName }}</td>
+                                    <td>
+                                        <a href="{{ application.urlStore }}">{{ application.urlStore }}</a>
+                                    </td>
+                                    {% if application.status == 'send' %}
+                                        <td id="Status{{ application.id }}">Отправлена</td>
+                                        <td id="Action{{ application.id }}">
+                                            <a type="button" button = 'Accept' id="Accept{{ application.id }}" class="btn btn-success">Принять</a>
+                                            <a type="button" button = 'Considered' id="Considered{{ application.id }}" class="btn btn-warning">На рассмотрении</a>
+                                            <a type="button" button = 'Reject' id="Reject{{ application.id }}" class="btn btn-danger" >Отказать</a>
+                                        </td>
+                                    {% elseif application.status == 'consideration' %}
+                                        <td id="Status{{ application.id }}">На рассмотрении</td>
+                                        <td id="Action{{ application.id }}">
+                                            <a type="button" button = 'Accept' id="Accept{{ application.id }}" class="btn btn-success">Принять</a>
+                                            <a type="button" button = 'Considered' id="Considered{{ application.id }}" class="btn btn-light" disabled>На рассмотрении</a>
+                                            <a type="button" button = 'Reject' id="Reject{{ application.id }}" class="btn btn-danger" >Отказать</a>
+                                        </td>
+                                    {% elseif application.status == 'rejected' %}
+                                        <td id="Status{{ application.id }}" >Отклонена</td>
+                                        <td id="Action{{ application.id }}">
+                                            <a type="button" button = 'Reject' id="Reject{{ application.id }}" class="btn btn-danger" disabled>Отказано</a>
+                                        </td>
+                                    {% elseif application.status == 'accepted' %}
+                                        <td id="Status{{ application.id }}">Принята</td>
+                                        <td id="Action{{ application.id }}">
+                                            <a type="button" button = 'Accept' id="Accept{{ application.id }}" class="btn btn-success" disabled>Заявка принята</a>
+                                        </td>
+                                    {% endif %}
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="6">no records found</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                        <a type="button" class=" btn btn-info" href="{{ path('app_application_new') }}">Создать</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('ApplicationController') }}
+{% endblock %}

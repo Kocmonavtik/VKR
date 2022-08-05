@@ -13,5 +13,7 @@ import {Carousel} from "bootstrap";
 import {Modal} from "bootstrap";
 import {Chart} from "chart.js";
 import {Star} from "bootstrap-star-rating"
+import {Toast} from "bootstrap";
+import toast from "bootstrap/js/src/toast";
 // start the Stimulus application
 import './bootstrap';

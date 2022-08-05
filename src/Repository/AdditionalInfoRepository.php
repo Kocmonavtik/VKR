@@ -38,6 +38,17 @@ class AdditionalInfoRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+    public function recalcRating(AdditionalInfo $offer)
+    {
+        $ratings = $offer->getRatings();
+        $count = 0;
+        $sum = 0;
+        foreach ($ratings as $rating) {
+            $sum += $rating->getEvaluation();
+            $count++;
+        }
+        return $sum / $count;
+    }
 
 //    /**
 //     * @return AdditionalInfo[] Returns an array of AdditionalInfo objects

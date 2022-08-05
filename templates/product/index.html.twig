@@ -5,15 +5,16 @@
 {% block body %}
     <div class="container mt-2">
         {#{% if pagination is not empty %}#}
+        <p>Отсортировать по:
+            <select class="form-select" aria-label="Sort" id="selectSort">
+                <option selected value="rating">Рейтингу</option>
+                <option value="priceUp">Цене по возрастанию</option>
+                <option value="priceDown">Цене по убыванию</option>
+                {#     <option value="popularity">Популярности</option>#}
+            </select>
+        </p>
             <div class="d-flex flex-column p-2 align-items-center" id="productList" >
-                <p>Отсортировать по:
-                    <select class="form-select" aria-label="Sort" id="selectSort">
-                        <option selected value="rating">Рейтингу</option>
-                        <option value="priceUp">Цене по возрастанию</option>
-                        <option value="priceDown">Цене по убыванию</option>
-                        <option value="popularity">Популярности</option>
-                    </select>
-                </p>
+
               {#  {% for product in pagination %}
                     <div class="card mb-3" style="max-width: 840px;">
                         <div class="row g-0">

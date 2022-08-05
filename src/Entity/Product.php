@@ -45,11 +45,17 @@ class Product
      */
     private $propertyProducts;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Statistic::class, mappedBy="product")
+     */
+    private $statistics;
+
     public function __construct()
     {
         $this->additionalInfos = new ArrayCollection();
         $this->category = new ArrayCollection();
         $this->propertyProducts = new ArrayCollection();
+        $this->statistics = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -159,6 +165,36 @@ class Product
             // set the owning side to null (unless already changed)
             if ($propertyProduct->getProduct() === $this) {
                 $propertyProduct->setProduct(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Statistic>
+     */
+    public function getStatistics(): Collection
+    {
+        return $this->statistics;
+    }
+
+    public function addStatistic(Statistic $statistic): self
+    {
+        if (!$this->statistics->contains($statistic)) {
+            $this->statistics[] = $statistic;
+            $statistic->setProduct($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStatistic(Statistic $statistic): self
+    {
+        if ($this->statistics->removeElement($statistic)) {
+            // set the owning side to null (unless already changed)
+            if ($statistic->getProduct() === $this) {
+                $statistic->setProduct(null);
             }
         }
 

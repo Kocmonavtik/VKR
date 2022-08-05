@@ -1,45 +1,16 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Product{% endblock %}
+{% block title %}{{ product.name }}{% endblock %}
 {% block body %}
-    <div class="container mt-5">
-
-    {#<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" data-bs-whatever="@mdo">Open modal for @mdo</button>
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" data-bs-whatever="@fat">Open modal for @fat</button>
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" data-bs-whatever="@getbootstrap">Open modal for @getbootstrap</button>
-
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">New message</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="mb-3">
-                            <label for="recipient-name" class="col-form-label">Recipient:</label>
-                            <input type="text" class="form-control" id="recipient-name">
-                        </div>
-                        <div class="mb-3">
-                            <label for="message-text" class="col-form-label">Message:</label>
-                            <textarea class="form-control" id="message-text"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Send message</button>
-                </div>
-            </div>
-        </div>
-    </div>#}
+    <div class="container mt-5" name="{{ product.id }}" id="ProductContainer">
 
         {% if product is not empty %}
             {% if app.user  %}
                 <div class="d-flex flex-column p-2 align-items-center">
                     <h1>{{ product.name }}</h1>
-                    <a type="button" class="btn btn-warning" href="{{ path('product_statistic', {'id': product.id}) }}">Статистика</a>
+                    {% if is_granted('ROLE_CLIENT') %}
+                        <a type="button" class="btn btn-success" href="{{ path('product_statistic', {'id': product.id}) }}">Статистика</a>
+                    {% endif %}
                 </div>
             {% else %}
                 <h1>{{ product.name }}</h1>
@@ -83,12 +54,11 @@
                             </div>
                             <div class="col-md-8">
                                 <div class="card-body">
-                                    <h4 class="card-title">Средняя цена: {{ median }}</h4>
-                                    <h4 class="card-title">Средняя оценка: {{ avgRating }}</h4>
+                                    <h4 class="card-title">Средняя цена: {{ median|round(2) }}</h4>
                                     <h4 class="card-title">Производитель: {{ product.manufacturer.name }}</h4>
                                     <h5 class="card-text">О товаре</h5>
-                                    {% for property in product.propertyProducts %}
-                                        <p class="card-text">{{ property.property.name }}: {{ property.value }}</p>
+                                    {% for property in properties|keys %}
+                                        <p class="card-text">{{ property }}: {{ properties[property] }}</p>
                                     {% endfor %}
                                 </div>
                             </div>
@@ -107,13 +77,17 @@
                                             <div class="card-body">
                                                 <h4 class="card-title"><a class="text-decoration-none text-info" href="{{ offer.store.urlStore }}">{{ offer.store.nameStore}}</a></h4>
                                                 <h5 class="card-title">Цена: {{ offer.price }}</h5>
-                                                <h5 class="card-title">Средняя оценка: {{ offer.averageRating }}</h5>
+                                                <h5 id="AverageRating{{ offer.id }}" class="card-title">Средняя оценка: {{ offer.averageRating|round(1) }}</h5>
                                                 <p class="card-text">Дата обновления цены: {{ offer.dateUpdate|date("m.d.Y", false) }}</p>
                                                 <div class="d-flex justify-content-between align-items-center">
-                                                    <a type="button" class="btn btn-warning" href="{{ offer.url }}">В магазин</a>
-                                                    {#<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" data-whatever="@mdo">Open modal for @mdo</button>
-                                                    <a class="fas fa-reply fa-xs small" aria-expanded="false" type="button" data-toggle="modal" data-target="#reportModal" data-whatever id="{{ offer.id }}">Жалоба<</a>#}
-                                                    <a class="fas fa-reply fa-xs small" type="button" data-bs-toggle="modal" data-bs-target="#reportModal" data-bs-whatever="{{ offer.id }}" aria-expanded="false">Жалоба</a>
+                                                    <a type="button" class="btn btn-warning"
+                                                            href="{{ path('set_statistic_offer', {'id': offer.id}) }}"
+                                                            {#href="{{ offer.url }}"#}>В магазин</a>
+                                                    {% if app.user %}
+                                                        <a class="fas fa-reply fa-xs small" labelButton="offerReport"
+                                                           type="button" data-bs-toggle="modal" data-bs-target="#reportModalOffer"
+                                                           data-bs-whatever="{{ offer.id }}" aria-expanded="false">Жалоба</a>
+                                                    {% endif %}
                                                 </div>
                                             </div>
                                         </div>
@@ -129,91 +103,131 @@
                     <div class="row d-flex justify-content-center">
                         <div class="col-md-12 col-lg-10 col-xl-8">
                             <div class="card">
-                                <div class="card-body p-4">
-                                    <h4 class="text-center mb-4 pb-2">Комментариев: {{ countComments }} </h4>
+                                <div id="CommentCard" class="card-body p-4">
+                                    <h4 class="text-center mb-4 pb-2">Комментариев: <label id="colComment"> {{ count }} </label> </h4>
                                     {% if app.user %}
-                                    <span>Выбрать магазин</span>
-                                    <div class="row align-items-center">
-                                        <div class="col-5">
-                                            <select class="form-select" aria-label="category" id="selectCategory">
-                                                <option selected value="nothing">Не выбрано</option>
-                                                {% for shop in shops %}
-                                                    <option value="{{ shop.nameStore }}">{{ shop.nameStore }}</option>
-                                                {% endfor %}
-                                            </select>
-                                        </div>
-                                        <div class="col-7">
-                                            <input id="input-2" name="input-2" class="rating rating-loading" data-min="0" data-max="5" data-step="0.5" data-size="lg">
-                                        </div>
-                                    </div>
-                                        <div class="row">
-                                            <div class="col">
-                                                <button  type="button" class="btn btn-warning d-inline-flex align-items-center rounded border-0 disabled"
-                                                        data-bs-toggle="collapse" data-bs-target="#comment-collapse" aria-expanded="false">
-                                                    Оставить отзыв
-                                                </button>
-                                                <div class="collapse" id="comment-collapse" style>
-                                                    {{ form_start(form) }}
-                                                    {{ form_widget(form) }}
-                                                    <button class="btn btn-info d-inline-flex align-items-center rounded border-0">{{ button_label|default('Отправить') }}</button>
-                                                    {{ form_end(form) }}
+                                        <span>Выбрать магазин</span>
+                                        {% if currentRating is not empty %}
+                                            <div class="row align-items-center">
+                                                <div class="col-5">
+                                                    <select class="form-select" aria-label="category" id="selectStore">
+                                                        <option value="nothing">Не выбрано</option>
+                                                        {% for shop in shops %}
+                                                            {% if shop.nameStore == currentRating[0].additionalInfo.store.nameStore %}
+                                                            <option selected value="{{ shop.id }}">{{ shop.nameStore }}</option>
+                                                            {% else %}
+                                                                <option value="{{ shop.id }}">{{ shop.nameStore }}</option>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </select>
                                                 </div>
-                                            {% endif %}
-                                            {% for originalComment in comments %}
-                                                <div class="d-flex flex-start pt-3">
-                                                    <img class="rounded-circle shadow-1-strong me-3"
-                                                         src="{{ asset('upload/' ~ originalComment.customer.avatar) }}" alt="avatar" width="65"
-                                                         height="65" />
-                                                    <div class="flex-grow-1 flex-shrink-1">
-                                                        <div>
-                                                            <div class="d-flex justify-content-between align-items-center">
-                                                                <p class="mb-1">
-                                                                    {{ originalComment.customer.name }} <span class="small">- {{ originalComment.date|format_datetime('short', 'short', locale='ru') }}</span>
-                                                                </p>
-                                                                {% if app.user %}
-                                                                    {#<button class="btn btn-toolbar d-inline-flex align-items-center rounded border-0 text-white"
-                                                                            data-bs-toggle="collapse" data-bs-target="#catalog-collapse" aria-expanded="false">
-                                                                        Каталог
-                                                                    </button>#}
-                                                                    <a class="fas fa-reply fa-xs small"
-                                                                       data-bs-toggle="collapse"
-                                                                       data-bs-target="#response-collapse{{ originalComment.id }}"
-                                                                       aria-expanded="false" role="button">Ответить<</a>
-                                                                    <div class="collapse" id="response-collapse{{ originalComment.id }}" style>
-                                                                        {{ form_start(responseForms[originalComment.id]) }}
-                                                                            {{ form_widget(responseForms[originalComment.id]) }}
-                                                                        {{ form_end(responseForms[originalComment.id]) }}
-                                                                    </div>
-                                                                {% endif %}
-                                                            </div>
-                                                            <p class="small mb-0">{{ originalComment.text }}
+                                                <div class="col-7">
+                                                    <input id="change-rating" name="{{ currentRating[0].id }}" class="rating-loading"
+                                                           data-min="0" data-max="5" data-step="1" data-size="lg" value="{{ currentRating[0].evaluation }}">
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col">
+                                                    <div class="form-group">
+                                                        <textarea class="form-control" id="currentCommentText" name="{{ currentComment[0].id }}" rows="3">{{ currentComment[0].text }}</textarea>
+                                                    </div>
+                                                    <button type="button" id="editReview" name="{{ currentComment[0].id }}" class="btn btn-warning d-inline-flex align-items-center rounded border-0 mt-3">
+                                                        Изменить отзыв
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <div class="row align-items-center">
+                                                <div class="col-5">
+                                                    <select class="form-select" aria-label="category" id="selectStore">
+                                                        <option selected value="nothing">Не выбрано</option>
+                                                        {% for shop in shops %}
+                                                            <option value="{{ shop.id}}">{{ shop.nameStore }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                <div class="col-7">
+                                                    <input id="input-rating" name="input-2" class="rating rating-loading" data-show-clear = "false" data-show-caption = "true"
+                                                           data-min="0" data-max="5" data-step="1" data-size="lg" value="0">
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col">
+                                                    <div class="form-group">
+                                                        <textarea class="form-control" id="newCommentText" rows="3"></textarea>
+                                                    </div>
+                                                    <button type="button" id="addReview" class="btn btn-warning d-inline-flex align-items-center rounded border-0 mt-3">
+                                                        Добавить отзыв
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    {% endif %}
+                                    <div id="commentList">
+                                        {% for key in originalComments |keys %}
+                                            <div class="d-flex flex-start pt-3">
+                                                <img class="rounded-circle shadow-1-strong me-3"
+                                                     src="{{ asset('upload/' ~ originalComments[key].avatar) }}" alt="avatar" width="65"
+                                                     height="65" />
+                                                <div class="flex-grow-1 flex-shrink-1">
+                                                    <div>
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <p class="mb-1">
+                                                                {{ originalComments[key].name }} <span id="dateOrigComment{{ originalComments[key].id }}"
+                                                               class="small">- {{ originalComments[key].date|format_datetime('short', 'short', locale='ru') }}</span>
                                                             </p>
+                                                            {% if app.user %}
+
+                                                            <a class="fas fa-reply fa-xs small"
+                                                               data-bs-toggle="collapse"
+                                                               data-bs-target="#response-collapse{{ originalComments[key].id }}"
+                                                               aria-expanded="false" role="button">Ответить<</a>
+                                                            <div class="collapse" id="response-collapse{{ originalComments[key].id }}" style>
+                                                                <div class="form-group">
+                                                                    <textarea class="form-control" id="responseForm{{ originalComments[key].id }}" rows="3"></textarea>
+                                                                </div>
+                                                                <button type="submit" labelButton="sendResponse" id="buttonCollapse{{ originalComments[key].id }}" class="btn btn-primary mt-3">Отправить</button>
+                                                            </div>
+                                                            {% endif %}
                                                         </div>
-                                                        {% for comment in originalComment.comments %}
-                                                            <div class="d-flex flex-start mt-4">
-                                                                <a class="me-3" href="#">
-                                                                    <img class="rounded-circle shadow-1-strong"
-                                                                         src="{{ asset('upload/' ~ originalComment.customer.avatar) }}" alt="avatar"
-                                                                         width="65" height="65" />
-                                                                </a>
-                                                                <div class="flex-grow-1 flex-shrink-1">
-                                                                    <div>
-                                                                        <div class="d-flex justify-content-between align-items-center">
-                                                                            <p class="mb-1">
-                                                                                {{ comment.customer.name }} <span class="small">- {{ comment.date|format_datetime('short', 'short', locale='ru') }}</span>
+                                                        <p id="textOrigComment{{ originalComments[key].id }}" class="small mb-0">{{ originalComments[key].text }}</p>
+                                                    </div>
+                                                    <a class="fas fa-reply fa-xs small text-end" labelButton="reportComment"
+                                                       type="button" data-bs-toggle="modal" data-bs-target="#reportModal"
+                                                       data-bs-whatever="{{ originalComments[key].id }}" aria-expanded="false">Жалоба</a>
+                                                    <div id="responseComments{{ originalComments[key].id }}">
+                                                        {% if responseComments[key] is defined %}
+                                                            {% for responseComment in responseComments[key]  %}
+                                                                <div class="d-flex flex-start mt-4">
+                                                                    <a class="me-3" href="#">
+                                                                        <img class="rounded-circle shadow-1-strong"
+                                                                             src="{{ asset('upload/' ~ responseComment.avatar) }}" alt="avatar"
+                                                                             width="65" height="65" />
+                                                                    </a>
+                                                                    <div class="flex-grow-1 flex-shrink-1">
+                                                                        <div>
+                                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                                <p class="mb-1">
+                                                                                    {{ responseComment.name }} <span class="small">- {{ responseComment.date|format_datetime('short', 'short', locale='ru') }}</span>
+                                                                                </p>
+                                                                            </div>
+                                                                            <p class="small mb-0">
+                                                                                {{ responseComment.text }}
                                                                             </p>
                                                                         </div>
-                                                                        <p class="small mb-0">
-                                                                            {{ comment.text }}
-                                                                        </p>
+                                                                        {% if app.user %}
+                                                                            <a class="fas fa-reply fa-xs small text-start" labelButton="reportComment"
+                                                                               type="button" data-bs-toggle="modal" data-bs-target="#reportModal"
+                                                                               data-bs-whatever="{{ responseComment.id }}" aria-expanded="false">Жалоба</a>
+                                                                        {% endif %}
                                                                     </div>
                                                                 </div>
-                                                            </div>
-                                                        {% endfor %}
+                                                            {% endfor %}
+                                                        {% endif %}
                                                     </div>
                                                 </div>
-                                            {% endfor %}
-                                        </div>
+                                            </div>
+                                        {% endfor %}
                                     </div>
                                 </div>
                             </div>
@@ -221,8 +235,6 @@
                     </div>
                 </div>
             </section>
-            </div>
-            </div>
         {% else %}
             <div >
                 <p class="text-center text-warning">Упс! Товар не найден!</p>
@@ -230,76 +242,54 @@
         {% endif %}
     </div>
 
-    <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="reportModalLabel">Отправить жалобу</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form>
-                       {# <div class="mb-3">
-                            <label for="recipient-name" class="col-form-label">Recipient:</label>
-                            <input type="text" class="form-control" id="recipient-name">
-                        </div>#}
-                        <div class="mb-3">
-                            <label for="message-text" class="col-form-label">Текст жалобы:</label>
-                            <textarea class="form-control" id="message-text"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                    <button type="button" class="btn btn-primary">Отправить</button>
-                </div>
+<div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reportModalLabel">Отправить жалобу</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formReportComment">
+                    <div class="mb-3">
+                        <label for="message-text" class="col-form-label">Текст жалобы:</label>
+                        <textarea class="form-control" id="message-text-comment"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="closeCommentModal" data-bs-dismiss="modal">Закрыть</button>
+                <button type="button" labelButton = "sendReportComment" class="btn btn-primary">Отправить</button>
             </div>
         </div>
     </div>
+</div>
 
+<div class="modal fade" id="reportModalOffer" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reportModalLabelOffer">Отправить жалобу</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formReportOffer">
+                    <div class="mb-3">
+                        <label for="message-text" class="col-form-label">Текст жалобы:</label>
+                        <textarea class="form-control" id="message-text-offer"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="closeOfferModal" data-bs-dismiss="modal">Закрыть</button>
+                <button type="button" labelButton = "sendReportOffer" class="btn btn-primary">Отправить</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    {#<table class="table">
-        <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ product.id }}</td>
-            </tr>
-            <tr>
-                <th>Name</th>
-                <td>{{ product.name }}</td>
-            </tr>
-            <tr>
-                <th>Parameter</th>
-                <td>{{ product.parameter ? product.parameter|json_encode : '' }}</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <a href="{{ path('app_product_index') }}">back to list</a>
-
-    <a href="{{ path('app_product_edit', {'id': product.id}) }}">edit</a>
-
-    {{ include('product/_delete_form.html.twig') }}#}
 {% endblock %}
   {% block javascripts %}
       {{ parent() }}
-{#      {{ encore_entry_script_tags('') }}#}
+      {{ encore_entry_script_tags('CommentController') }}
   {% endblock %}

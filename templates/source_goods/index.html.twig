@@ -1,0 +1,130 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}SourceGoods index{% endblock %}
+
+{% block body %}
+<div class="container rounded bg-white mt-5 mb-5">
+    <div class="col-md-12 border-right">
+        <div class="card mb-4">
+         {#   <div class="loader"></div>#}
+            <div class="card-body">
+                <!-- Grid row -->
+                <div class="row">
+                    <!-- Grid column -->
+                    <div class="col-md-12">
+                        <h2 class="py-3 text-center font-bold font-up success-text">Источники</h2>
+                    </div>
+                    <!-- Grid column -->
+                </div>
+                <!-- Grid row -->
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>URL</th>
+                            <th>Почта</th>
+                            <th>Магазин</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for source in sources %}
+                            {% if source.status == 'nothing' %}
+                                <tr id="SourceElement{{ source.id }}">
+                                    <td>{{ source.id }}</td>
+                                    <td id="UrlSource{{ source.id }}">{{ source.url }}</td>
+                                    <td>{{ source.customer.email }}</td>
+                                    <td>{{ source.store.nameStore }}</td>
+                                    <td id="StatusSource{{ source.id }}">Нет источника</td>
+                                    <td>
+
+                                    </td>
+                                </tr>
+                            {% elseif source.status == 'progress' %}
+                                <tr class="table-warning" id="SourceElement{{ source.id }}">
+                                    <td>{{ source.id }}</td>
+                                    <td id="UrlSource{{ source.id }}">{{ source.url }}</td>
+                                    <td>{{ source.customer.email }}</td>
+                                    <td>{{ source.store.nameStore }}</td>
+                                    <td id="StatusSource{{ source.id }}">В очереди</td>
+                                    {% if isProcessing %}
+                                        <td id="Action{{ source.id }}">
+                                            <button class="btn btn-info profile-button" id="Source{{ source.id }}"
+                                                    button="processSource" type="button" disabled>Обработать
+                                            </button>
+                                        </td>
+                                    {% else %}
+                                        <td id="Action{{ source.id }}">
+                                            <button class="btn btn-info profile-button" id="Source{{ source.id }}"
+                                                    button="processSource" type="button">Обработать
+                                            </button>
+                                        </td>
+                                    {% endif %}
+                                </tr>
+                            {% elseif source.status == 'error' %}
+                                <tr class="table-danger" id="SourceElement{{ source.id }}">
+                                    <td>{{ source.id }}</td>
+                                    <td id="UrlSource{{ source.id }}">{{ source.url }}</td>
+                                    <td>{{ source.customer.email }}</td>
+                                    <td>{{ source.store.nameStore }}</td>
+                                    <td id="StatusSource{{ source.id }}">Ошибка при обработке</td>
+                                    <td id="Action{{ source.id }}">
+                                        <button class="btn btn-warning profile-button" id="Source{{ source.id }}"
+                                                button="processSource" type="button">Повторить
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% elseif source.status == 'processed' %}
+                                <tr class="table-success" id="SourceElement{{ source.id }}">
+                                    <td>{{ source.id }}</td>
+                                    <td id="UrlSource{{ source.id }}">{{ source.url }}</td>
+                                    <td>{{ source.customer.email }}</td>
+                                    <td>{{ source.store.nameStore }}</td>
+                                    <td id="StatusSource{{ source.id }}">Обработана</td>
+                                    <td id="Action{{ source.id }}">
+                                    </td>
+                                </tr>
+                            {% elseif source.status == 'processing' %}
+                                <tr class="table-primary" id="SourceElement{{ source.id }}">
+                                    <td>{{ source.id }}</td>
+                                    <td id="UrlSource{{ source.id }}">{{ source.url }}</td>
+                                    <td>{{ source.customer.email }}</td>
+                                    <td>{{ source.store.nameStore }}</td>
+                                    <td id="StatusSource{{ source.id }}">Обрабатывается</td>
+                                    <td id="Action{{ source.id }}">
+                                        <div class="loader"></div>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                          {#  <tr>
+                                <td>{{ source.id }}</td>
+                                <td>
+                                    <a href="{{ source.url }}">{{ source.url }}</a>
+                                </td>
+                                <td> {{ source.customer.email }}</td>
+                                <td> {{ source.store.nameStore }}</td>
+                                <td>{{ source.status }}</td>
+                                <td>
+                                    <a type="button" class="btn btn-success" href="{{ path('app_source_goods_show', {'id': source.id}) }}">Обработать</a>
+                                </td>
+                            </tr>#}
+                        {% else %}
+                            <tr>
+                                <td colspan="6">no records found</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    <a type="button" class=" btn btn-info" href="{{ path('app_source_goods_new') }}">Создать</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('SourceController') }}
+{% endblock %}

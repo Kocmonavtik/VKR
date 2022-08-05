@@ -3,6 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\Comment;
+use App\Entity\Product;
+use App\Entity\Users;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -37,6 +39,18 @@ class CommentRepository extends ServiceEntityRepository
         if ($flush) {
             $this->getEntityManager()->flush();
         }
+    }
+    public function getOriginalCommentCurrentUser(Product $product, Users $user)
+    {
+        $builder = $this->createQueryBuilder('c')
+            ->leftJoin('c.AdditionalInfo', 'ai')
+            ->leftJoin('ai.product', 'p')
+            ->where('p.id = :id')
+            ->setParameter('id', $product->getId())
+            ->andWhere('c.customer = :user')
+            ->setParameter('user', $user)
+            ->andWhere('c.response is null');
+        return $builder->getQuery()->getResult();
     }
 
 //    /**

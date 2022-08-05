@@ -23,6 +23,11 @@ Encore
     .addEntry('SortProducts', './assets/controllers/SortProducts.js')
     .addEntry('Statistic', './assets/controllers/Statistic.js')
     .addEntry('StatisticProduct', './assets/controllers/StatisticProduct.js')
+    .addEntry('CommentController', './assets/controllers/CommentController')
+    .addEntry('profileController', './assets/controllers/profileController')
+    .addEntry('searchProductSort', './assets/controllers/searchProductSort.js')
+    .addEntry('ApplicationController', './assets/controllers/ApplicationController.js')
+    .addEntry('SourceController', './assets/controllers/SourceController.js')
 
     // enables the Symfony UX Stimulus bridge (used in assets/bootstrap.js)
     .enableStimulusBridge('./assets/controllers.json')

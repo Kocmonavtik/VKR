@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\AdditionalInfo;
 use App\Entity\Product;
+use App\Entity\Statistic;
 use App\Form\DateType;
 use App\Repository\AdditionalInfoRepository;
 use App\Repository\CategoryRepository;
@@ -10,6 +12,7 @@ use App\Repository\ManufacturerRepository;
 use App\Repository\StoreRepository;
 use App\Service\SearchFunctions;
 use App\Service\ServiceRepository;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,27 +21,30 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class StatisticController extends AbstractController
 {
-    private $searchFunctions;
-    private $categoryRepository;
+    private SearchFunctions $searchFunctions;
+/*    private $categoryRepository;
     private $manufacturerRepository;
-    private $storeRepository;
-    private $serviceRepository;
-    private $additionalInfoRepository;
+    private $storeRepository;*/
+    private ServiceRepository $serviceRepository;
+    private AdditionalInfoRepository $additionalInfoRepository;
+    private ManagerRegistry $doctrine;
 
     public function __construct(
         SearchFunctions $searchFunctions,
-        CategoryRepository $categoryRepository,
+      /*  CategoryRepository $categoryRepository,
         ManufacturerRepository $manufacturerRepository,
-        StoreRepository $storeRepository,
+        StoreRepository $storeRepository,*/
         ServiceRepository $serviceRepository,
-        AdditionalInfoRepository $additionalInfoRepository
+        AdditionalInfoRepository $additionalInfoRepository,
+        ManagerRegistry $doctrine
     ) {
         $this->searchFunctions = $searchFunctions;
-        $this->categoryRepository = $categoryRepository;
+     /*   $this->categoryRepository = $categoryRepository;
         $this->manufacturerRepository = $manufacturerRepository;
-        $this->storeRepository = $storeRepository;
+        $this->storeRepository = $storeRepository;*/
         $this->serviceRepository = $serviceRepository;
         $this->additionalInfoRepository = $additionalInfoRepository;
+        $this->doctrine = $doctrine;
     }
 
     /**
@@ -67,12 +73,23 @@ class StatisticController extends AbstractController
                 ['price' => 'ASC']
             );
         $shops = $this->serviceRepository->getStoresProduct($product);
+
+        $propertyProduct = $product->getPropertyProducts();
+        $masPropertiesProduct = [];
+        foreach ($propertyProduct as $item) {
+            if (empty($masPropertiesProduct[$item->getProperty()->getName()])) {
+                $masPropertiesProduct[$item->getProperty()->getName()] = $item->getValue();
+            } else {
+                $masPropertiesProduct[$item->getProperty()->getName()] .= ' ' . $item->getValue();
+            }
+        }
         return $this->render('statistic/indexProduct.html.twig', [
             'categories' => $items,
             'dateForm' => $form->createView(),
             'product' => $product,
             'offers' => $offers,
-            'shops' => $shops
+            'shops' => $shops,
+            'properties' => $masPropertiesProduct
 
         ]);
     }
@@ -101,9 +118,20 @@ class StatisticController extends AbstractController
                 $dateSecond,
                 $id
             );
+
             foreach ($result as $item) {
                 $statisticStore[$item['nameStore']] = (float) $item['count'];
             }
+
+            $resultProduct = $this->serviceRepository->getVisitProduct(
+                $dateFirst,
+                $dateSecond,
+                $id
+            );
+            foreach ($resultProduct as $item) {
+                $statisticStore['Посещений на сайте'] = (float) $item['count'];
+            }
+
         }
         return $this->json([
             'result' => $statisticStore
@@ -183,6 +211,12 @@ class StatisticController extends AbstractController
                 $dateFirst,
                 $dateSecond
             );
+            $resultProduct = $this->serviceRepository->getVisitBrandProduct(
+                $manufacturers,
+                $category,
+                $dateFirst,
+                $dateSecond
+            );
             foreach ($result as $item) {
                 $tmp[$item['nameStore']][$item['name']] = $item['count'];
             }
@@ -195,9 +229,36 @@ class StatisticController extends AbstractController
                     }
                 }
             }
+
+            $tmp = [];
+            foreach ($resultProduct as $item) {
+                $tmp[$item['name']] = $item['count'];
+            }
+
+            foreach ($manufacturers as $manufacturer) {
+                if (array_key_exists($manufacturer, $tmp)) {
+                    $statisticStore['Посещений на сайте'][] = (float) $tmp[$manufacturer];
+                } else {
+                    $statisticStore['Посещений на сайте'][] = 0.0;
+                }
+            }
         }
         return $this->json([
             'result' => $statisticStore
         ]);
+    }
+    /**
+     *@Route("/statistic/offer/{id}", name="set_statistic_offer", methods={"GET", "POST"})
+     */
+    public function setStatistic(AdditionalInfo $offer)
+    {
+        $manager = $this->doctrine->getManager();
+        $statistic = new Statistic();
+        $statistic->setDateVisit(new \DateTime('now'))
+            ->setProduct($offer->getProduct())
+            ->setAdditionalInfo($offer);
+        $manager->persist($statistic);
+        $manager->flush();
+        return $this->redirect($offer->getUrl(),308);
     }
 }
