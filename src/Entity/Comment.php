@@ -52,11 +52,6 @@ class Comment
     private $comments;
 
     /**
-     * @ORM\OneToMany(targetEntity=RatingComment::class, mappedBy="comment")
-     */
-    private $ratingComments;
-
-    /**
      * @ORM\OneToMany(targetEntity=ReportComment::class, mappedBy="comment")
      */
     private $reportComments;
@@ -69,7 +64,6 @@ class Comment
     public function __construct()
     {
         $this->comments = new ArrayCollection();
-        $this->ratingComments = new ArrayCollection();
         $this->reportComments = new ArrayCollection();
     }
 
@@ -162,36 +156,6 @@ class Comment
             // set the owning side to null (unless already changed)
             if ($comment->getResponse() === $this) {
                 $comment->setResponse(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, RatingComment>
-     */
-    public function getRatingComments(): Collection
-    {
-        return $this->ratingComments;
-    }
-
-    public function addRatingComment(RatingComment $ratingComment): self
-    {
-        if (!$this->ratingComments->contains($ratingComment)) {
-            $this->ratingComments[] = $ratingComment;
-            $ratingComment->setComment($this);
-        }
-
-        return $this;
-    }
-
-    public function removeRatingComment(RatingComment $ratingComment): self
-    {
-        if ($this->ratingComments->removeElement($ratingComment)) {
-            // set the owning side to null (unless already changed)
-            if ($ratingComment->getComment() === $this) {
-                $ratingComment->setComment(null);
             }
         }
 

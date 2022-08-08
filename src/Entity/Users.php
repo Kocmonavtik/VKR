@@ -85,11 +85,6 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     private $comments;
 
     /**
-     * @ORM\OneToMany(targetEntity=RatingComment::class, mappedBy="customer")
-     */
-    private $ratingComments;
-
-    /**
      * @ORM\OneToMany(targetEntity=ReportComment::class, mappedBy="customer")
      */
     private $reportComments;
@@ -102,7 +97,6 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         $this->ratings = new ArrayCollection();
         $this->reportProducts = new ArrayCollection();
         $this->comments = new ArrayCollection();
-        $this->ratingComments = new ArrayCollection();
         $this->reportComments = new ArrayCollection();
     }
 
@@ -405,36 +399,6 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($comment->getCustomer() === $this) {
                 $comment->setCustomer(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, RatingComment>
-     */
-    public function getRatingComments(): Collection
-    {
-        return $this->ratingComments;
-    }
-
-    public function addRatingComment(RatingComment $ratingComment): self
-    {
-        if (!$this->ratingComments->contains($ratingComment)) {
-            $this->ratingComments[] = $ratingComment;
-            $ratingComment->setCustomer($this);
-        }
-
-        return $this;
-    }
-
-    public function removeRatingComment(RatingComment $ratingComment): self
-    {
-        if ($this->ratingComments->removeElement($ratingComment)) {
-            // set the owning side to null (unless already changed)
-            if ($ratingComment->getCustomer() === $this) {
-                $ratingComment->setCustomer(null);
             }
         }
 

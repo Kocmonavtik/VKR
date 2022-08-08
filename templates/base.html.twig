@@ -28,27 +28,29 @@
                                 data-bs-toggle="collapse" data-bs-target="#catalog-collapse" aria-expanded="false">
                             Каталог
                         </button>
-                        <div class="collapse" id="catalog-collapse" style>
-                            <ul class=" btn-toggle list-unstyled fw-normal pb-1">
-                                <li>
-                                    {% for category in categories %}
-                                        {% if category[1] %}
-                                                <a class="dropdown-toggle link-dark d-inline-flex text-decoration-none rounded text-white" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    {{ category[0].name }}
-                                                </a>
-                                                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuLink">
-                                                    {% for subCategory in category[1] %}
-                                                        <a href="{{ path('product_category', {'id': subCategory.id, page: 1}) }}" class="dropdown-item link-dark d-inline-flex text-decoration-none rounded text-white">{{ subCategory.name }}</a>
-                                                    {% endfor %}
-                                                </ul>
-                                            {#<a href="" class="link-dark d-inline-flex text-decoration-none rounded text-white">{{ category[0].name }}</a>#}
-                                        {% else %}
-                                            <a href="{{ path('product_category', {'id': category[0].id, page: 1}) }}" class="link-dark d-inline-flex text-decoration-none rounded text-white">{{ category[0].name }}</a>
-                                        {% endif %}
-                                    {% endfor %}
-                                </li>
-                            </ul>
-                        </div>
+                        {% if categories is defined %}
+                            <div class="collapse" id="catalog-collapse" style>
+                                <ul class=" btn-toggle list-unstyled fw-normal pb-1">
+                                    <li>
+                                        {% for category in categories %}
+                                            {% if category[1] %}
+                                                    <a class="dropdown-toggle link-dark d-inline-flex text-decoration-none rounded text-white" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        {{ category[0].name }}
+                                                    </a>
+                                                    <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuLink">
+                                                        {% for subCategory in category[1] %}
+                                                            <a href="{{ path('product_category', {'id': subCategory.id, page: 1}) }}" class="dropdown-item link-dark d-inline-flex text-decoration-none rounded text-white">{{ subCategory.name }}</a>
+                                                        {% endfor %}
+                                                    </ul>
+                                                {#<a href="" class="link-dark d-inline-flex text-decoration-none rounded text-white">{{ category[0].name }}</a>#}
+                                            {% else %}
+                                                <a href="{{ path('product_category', {'id': category[0].id, page: 1}) }}" class="link-dark d-inline-flex text-decoration-none rounded text-white">{{ category[0].name }}</a>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </li>
+                                </ul>
+                            </div>
+                        {% endif %}
                     </li>
                 </ul>
                {# <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" role="search" action="{{ path('search_product') }}" method="get">
