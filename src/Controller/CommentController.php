@@ -78,6 +78,7 @@ class CommentController extends AbstractController
             $comment->setDate(new \DateTime('now'));
             $comment->setText($text);
             $comment->setAdditionalInfo($offerNew);
+            $comment->setStatus('complete');
             $commentManager->flush();
             $offerNew->setAverageRating($this->additionalInfoRepository->recalcRating($offerNew));
             $offerOld->setAverageRating($this->additionalInfoRepository->recalcRating($offerOld));
@@ -161,6 +162,7 @@ class CommentController extends AbstractController
         $comment->setDate(new \DateTime('now'));
         $comment->setAdditionalInfo($offer);
         $comment->setText($text);
+        $comment->setStatus('complete');
         $manager->persist($rating);
         $manager->persist($comment);
         $manager->flush();

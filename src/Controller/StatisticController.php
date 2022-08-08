@@ -102,16 +102,21 @@ class StatisticController extends AbstractController
         $stores = $request->query->get('stores');
         $id = $request->query->get('productId');
 
+        $dateFirst = $request->query->get('dateFirst');
+        $dateSecond = $request->query->get('dateSecond');
         $statisticStore = [];
         if ($dataType === 'rating') {
-            $result = $this->serviceRepository->getRatingProductStore($stores, $id);
+            $result = $this->serviceRepository->getRatingProductStore(
+                $stores,
+                $dateFirst,
+                $dateSecond,
+                $id
+            );
 
             foreach ($result as $item) {
                 $statisticStore[$item['nameStore']] = $item['avg'];
             }
         } else {
-            $dateFirst = $request->query->get('dateFirst');
-            $dateSecond = $request->query->get('dateSecond');
             $result = $this->serviceRepository->getVisitProductStore(
                 $stores,
                 $dateFirst,
@@ -185,10 +190,16 @@ class StatisticController extends AbstractController
         //var_dump($stores, $manufacturers);
         $tmp = [];
         $statisticStore = [];
+        $dateFirst = $request->query->get('dateFirst');
+        $dateSecond = $request->query->get('dateSecond');
         if ($dataType === 'rating') {
-            $result = $this->serviceRepository->getRatingBrandStore($stores, $manufacturers, $category);
-
-            //var_dump($result);
+            $result = $this->serviceRepository->getRatingBrandStore(
+                $stores,
+                $manufacturers,
+                $category,
+                $dateFirst,
+                $dateSecond
+            );
             foreach ($result as $item) {
                 $tmp[$item['nameStore']][$item['name']] = $item['avg'];
             }
@@ -202,8 +213,6 @@ class StatisticController extends AbstractController
                 }
             }
         } else {
-            $dateFirst = $request->query->get('dateFirst');
-            $dateSecond = $request->query->get('dateSecond');
             $result = $this->serviceRepository->getVisitBrandStore(
                 $stores,
                 $manufacturers,
@@ -211,7 +220,7 @@ class StatisticController extends AbstractController
                 $dateFirst,
                 $dateSecond
             );
-            $resultProduct = $this->serviceRepository->getVisitBrandProduct(
+           $resultProduct = $this->serviceRepository->getVisitBrandProduct(
                 $manufacturers,
                 $category,
                 $dateFirst,

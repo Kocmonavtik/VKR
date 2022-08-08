@@ -106,7 +106,7 @@ class ProductRepository extends ServiceEntityRepository
             }
         }
         $result = [];
-        foreach ($properties as $property) {
+        if (empty($properties)) {
             $builder = $this->createQueryBuilder('p')
                 ->leftJoin('p.propertyProducts', 'pp')
                 ->leftJoin('pp.property', 'prop')
@@ -126,9 +126,6 @@ class ProductRepository extends ServiceEntityRepository
                     ->setParameter('manufacturer', $manufacturer);
             }
 
-            $builder->andWhere("pp.value IN (:property)")
-                ->setParameter("property", $property);
-
             $builder->groupBy('p.id');
             switch ($sort) {
                 case 'rating':
@@ -141,23 +138,62 @@ class ProductRepository extends ServiceEntityRepository
                     $builder->orderBy('min(ai.price)', 'DESC');
                     break;
             }
-            $result[] = $builder->getQuery()->getResult();
-        }
-        $count = count($result);
-        $countsCoincidences = [];
-        $masObjects = [];
-        foreach ($result as $products) {
-            foreach ($products as $product) {
-                $masObjects[$product->getId()] = $product;
-                $countsCoincidences[] = $product->getId();
+            return $builder->getQuery()->getResult();
+        } else {
+            foreach ($properties as $property) {
+                $builder = $this->createQueryBuilder('p')
+                   ->leftJoin('p.propertyProducts', 'pp')
+                   ->leftJoin('pp.property', 'prop')
+                   ->leftJoin('p.category', 'c')
+                   ->leftJoin('p.manufacturer', 'm')
+                   ->leftJoin('p.additionalInfos', 'ai')
+                   ->leftJoin('ai.ratings', 'r')
+                   ->where('ai.price between :min and :max')
+                   ->setParameter('min', $minPrice)
+                   ->setParameter('max', $maxPrice);
+                if (!empty($category)) {
+                    $builder->andWhere('c.name IN (:category)')
+                       ->setParameter('category', $category);
+                }
+                if (!empty($manufacturer)) {
+                    $builder->andWhere('m.name IN (:manufacturer)')
+                       ->setParameter('manufacturer', $manufacturer);
+                }
+
+                $builder->andWhere("pp.value IN (:property)")
+                   ->setParameter("property", $property);
+
+                $builder->groupBy('p.id');
+                switch ($sort) {
+                    case 'rating':
+                        $builder->orderBy('avg(r.evaluation)', 'DESC');
+                        break;
+                    case 'priceUp':
+                        $builder->orderBy('min(ai.price)', 'ASC');
+                        break;
+                    case 'priceDown':
+                        $builder->orderBy('min(ai.price)', 'DESC');
+                        break;
+                }
+                $result[] = $builder->getQuery()->getResult();
             }
-        }
-        $resultObjects = [];
-        $counts = array_count_values($countsCoincidences);
-        foreach ($counts as $key => $item) {
-            if ($count === $counts[$key]) {
-                $resultObjects[] = $masObjects[$key];
+            $count = count($result);
+            $countsCoincidences = [];
+            $masObjects = [];
+            foreach ($result as $products) {
+                foreach ($products as $product) {
+                    $masObjects[$product->getId()] = $product;
+                    $countsCoincidences[] = $product->getId();
+                }
             }
+            $resultObjects = [];
+            $counts = array_count_values($countsCoincidences);
+            foreach ($counts as $key => $item) {
+                if ($count === $counts[$key]) {
+                    $resultObjects[] = $masObjects[$key];
+                }
+            }
+            return $resultObjects;
         }
 
 
@@ -214,7 +250,6 @@ class ProductRepository extends ServiceEntityRepository
                 $builder->orderBy('min(ai.price)', 'DESC');
                 break;
         }*/
-        return $resultObjects;
     }
 
     public function sortProductRating($search)

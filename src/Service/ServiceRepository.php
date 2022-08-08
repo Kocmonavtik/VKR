@@ -96,7 +96,7 @@ where tmp.countProd > 0';
         $resultSet = $stmt->executeQuery();
         return $resultSet->fetchAllAssociative();
     }
-    public function getRatingBrandStore($stores, $manufacturers, $category): array
+    public function getRatingBrandStore($stores, $manufacturers, $category, $dateFirst, $dateSecond): array
     {
         $builder = $this->createQueryBuilder('p')
             ->select('s.nameStore', 'm.name', 'avg(r.evaluation) as avg')
@@ -110,8 +110,23 @@ where tmp.countProd > 0';
             ->andWhere('m.name IN(:manufacturers)')
             ->setParameter('manufacturers', $manufacturers)
             ->andWhere('s.nameStore IN(:stores)')
-            ->setParameter('stores', $stores)
-            ->groupBy('m.name , s.nameStore');
+            ->setParameter('stores', $stores);
+        if ($dateFirst !== "" && $dateSecond !== "") {
+            $dateOne = new \DateTime($dateFirst);
+            $dateTwo = new \DateTime($dateSecond);
+            $builder->andWhere('r.date BETWEEN :dateFirst and :dateSecond')
+                ->setParameter('dateFirst', $dateOne->format('Y-m-d H:i:s'))
+                ->setParameter('dateSecond', $dateTwo->format('Y-m-d H:i:s'));
+        } elseif ($dateFirst !== "" && $dateSecond === "") {
+            $dateOne = new \DateTime($dateFirst);
+            $builder->andWhere('r.date >= :dateFirst')
+                ->setParameter('dateFirst', $dateOne->format('Y-m-d H:i:s'));
+        } elseif ($dateFirst === "" && $dateSecond !== "") {
+            $dateTwo = new \DateTime($dateSecond);
+            $builder->andWhere('r.date <= :dateSecond')
+                ->setParameter('dateSecond', $dateTwo->format('Y-m-d H:i:s'));
+        }
+        $builder->groupBy('m.name , s.nameStore');
         return $builder->getQuery()->getResult();
     }
     public function getVisitBrandStore($stores, $manufacturers, $category, $dateFirst, $dateSecond): array
@@ -192,7 +207,7 @@ where tmp.countProd > 0';
         return $builder->getQuery()->getResult();
     }
 
-    public function getRatingProductStore($stores, $productId): array
+    public function getRatingProductStore($stores, $dateFirst, $dateSecond, $productId): array
     {
         $builder = $this->createQueryBuilder('p')
             ->select('s.nameStore', 'avg(r.evaluation) as avg')
@@ -202,8 +217,23 @@ where tmp.countProd > 0';
             ->where('p.id = :productId')
             ->setParameter('productId', (int) $productId)
             ->andWhere('s.nameStore IN(:stores)')
-            ->setParameter('stores', $stores)
-            ->groupBy('s.nameStore');
+            ->setParameter('stores', $stores);
+        if ($dateFirst !== "" && $dateSecond !== "") {
+            $dateOne = new \DateTime($dateFirst);
+            $dateTwo = new \DateTime($dateSecond);
+            $builder->andWhere('r.date BETWEEN :dateFirst and :dateSecond')
+                ->setParameter('dateFirst', $dateOne->format('Y-m-d H:i:s'))
+                ->setParameter('dateSecond', $dateTwo->format('Y-m-d H:i:s'));
+        } elseif ($dateFirst !== "" && $dateSecond === "") {
+            $dateOne = new \DateTime($dateFirst);
+            $builder->andWhere('r.date >= :dateFirst')
+                ->setParameter('dateFirst', $dateOne->format('Y-m-d H:i:s'));
+        } elseif ($dateFirst === "" && $dateSecond !== "") {
+            $dateTwo = new \DateTime($dateSecond);
+            $builder->andWhere('r.date <= :dateSecond')
+                ->setParameter('dateSecond', $dateTwo->format('Y-m-d H:i:s'));
+        }
+        $builder->groupBy('s.nameStore');
         return $builder->getQuery()->getResult();
     }
 

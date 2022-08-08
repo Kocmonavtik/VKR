@@ -100,7 +100,7 @@ class ProfileController extends AbstractController
             ->setNameStore($elementList['nameStore'])
             ->setFullName($elementList['fullName']);
         $store->setNameStore($elementList['nameStore'])
-            ->setUrlStore('urlStore')
+            ->setUrlStore($elementList['urlStore'])
             ->setCustomer($this->getUser());
 
         $file = $request->files->get('logoFile');
@@ -177,12 +177,13 @@ class ProfileController extends AbstractController
         $user->setName($elementList['name']);
         $user->setGender($elementList['gender']);
         $email = null;
-        $avatar = null;
+        $avatar = $user->getAvatar();
         $name = $elementList['name'];
         $gender = $elementList['gender'];
         $result = null;
 
         if ($user->getEmail() == $elementList['email']) {
+            $email = $elementList['email'];
         } else {
             if ($manager->getRepository(Users::class)->findOneBy(['email' => $elementList['email']])) {
                 $result = 'Пользователь с эл. почтой: ' . $elementList['email'] . ' уже зарегистрирован';

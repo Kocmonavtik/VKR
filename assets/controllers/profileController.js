@@ -5,7 +5,6 @@ $(document).ready(function () {
         let name = $('#inputName').val();
         let gender = $('#selectGender option:selected').val();
         let email = $('#inputEmail').val();
-        //var $input = $('#avatarFile');
         var fd = new FormData();
         var files = $('#avatarFile')[0].files;
         fd.append('file',files[0]);
