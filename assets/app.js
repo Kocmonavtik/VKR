@@ -15,5 +15,6 @@ import {Chart} from "chart.js";
 import {Star} from "bootstrap-star-rating"
 import {Toast} from "bootstrap";
 import toast from "bootstrap/js/src/toast";
+import scrollspy from "bootstrap/js/src/scrollspy";
 // start the Stimulus application
 import './bootstrap';

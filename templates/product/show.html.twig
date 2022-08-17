@@ -136,6 +136,7 @@
                                                     </button>
                                                 </div>
                                             </div>
+                                            <div class="alert alert-danger" hidden id="errorComment"></div>
                                         {% else %}
                                             <div class="row align-items-center">
                                                 <div class="col-5">
@@ -147,7 +148,7 @@
                                                     </select>
                                                 </div>
                                                 <div class="col-7">
-                                                    <input id="input-rating" name="input-2" class="rating rating-loading" data-show-clear = "false" data-show-caption = "true"
+                                                    <input id="input-rating" name="inputRating" class="rating-loading"
                                                            data-min="0" data-max="5" data-step="1" data-size="lg" value="0">
                                                 </div>
                                             </div>
@@ -161,6 +162,7 @@
                                                     </button>
                                                 </div>
                                             </div>
+                                            <div class="alert alert-danger" hidden id="errorComment"></div>
                                         {% endif %}
                                     {% endif %}
                                     <div id="commentList">
@@ -251,6 +253,7 @@
                 <h5 class="modal-title" id="reportModalLabel">Отправить жалобу</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+            <div class="alert alert-danger" hidden id="errorReportComment"></div>
             <div class="modal-body">
                 <form id="formReportComment">
                     <div class="mb-3">
@@ -274,6 +277,7 @@
                 <h5 class="modal-title" id="reportModalLabelOffer">Отправить жалобу</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+            <div class="alert alert-danger" hidden id="errorReportOffer"></div>
             <div class="modal-body">
                 <form id="formReportOffer">
                     <div class="mb-3">

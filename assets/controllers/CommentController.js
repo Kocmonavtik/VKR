@@ -37,12 +37,19 @@ $(document).ready(function () {
 
 
     $("#editReview").click(function () {
-        const controller = "/comment/edit"
-        let commentId = $(this).attr('name');
-        let offerId = $("#selectStore option:selected").val();
-        let text = $("#currentCommentText").val();
-        let ratingId = $('#change-rating').rating().attr('name');
-        editComment(controller,commentId, offerId, text, ratingId);
+        $('#errorComment').empty();
+        $('#errorComment').prop('hidden', true);
+        if ($('#currentCommentText').val() == '') {
+            $('#errorComment').append('Поле не должно быть пустым!');
+            $('#errorComment').removeAttr('hidden');
+        } else {
+            const controller = "/comment/edit"
+            let commentId = $(this).attr('name');
+            let offerId = $("#selectStore option:selected").val();
+            let text = $("#currentCommentText").val();
+            let ratingId = $('#change-rating').rating().attr('name');
+            editComment(controller,commentId, offerId, text, ratingId);
+        }
     });
     $("#change-rating").rating().on('rating:clear', function (event) {
     }).on("rating:change", function (event, value, caption) {
@@ -54,62 +61,84 @@ $(document).ready(function () {
     });
     $("#addReview").on('click',function () {
         if (flag) {
-            const controller = "/comment/edit"
-            let commentId = currentCommentId;
-            /*console.log(commentId)*/
-            let offerId = $("#selectStore option:selected").val();
-            /*  console.log(offerId)*/
-            let text = $("#newCommentText").val();
-            let ratingId = currentRatingId;
-            editComment(controller,commentId, offerId, text, ratingId);
+            $('#errorComment').empty();
+            $('#errorComment').prop('hidden', true);
+            if ($('#newCommentText').val() == '') {
+                $('#errorComment').append('Поле не должно быть пустым!');
+                $('#errorComment').removeAttr('hidden');
+            } else {
+                const controller = "/comment/edit"
+                let commentId = currentCommentId;
+                /*console.log(commentId)*/
+                let offerId = $("#selectStore option:selected").val();
+                /*  console.log(offerId)*/
+                let text = $("#newCommentText").val();
+                let ratingId = currentRatingId;
+                editComment(controller,commentId, offerId, text, ratingId);
+            }
         } else {
-            const controller = '/comment/new';
-            let rating = $('#input-rating').rating().val();
-            let text = $('#newCommentText').val();
-            let offerId = $("#selectStore option:selected").val();
-            newComment(controller, rating, text, offerId);
+            $('#errorComment').empty();
+            $('#errorComment').prop('hidden', true);
+            if ($('#newCommentText').val() == '') {
+                $('#errorComment').append('Поле не должно быть пустым!');
+                $('#errorComment').removeAttr('hidden');
+            } else {
+                const controller = '/comment/new';
+                let rating = $('#input-rating').rating().val();
+                let text = $('#newCommentText').val();
+                let offerId = $("#selectStore option:selected").val();
+                newComment(controller, rating, text, offerId);
+            }
         }
     })
- /*  $('[data-bs-toggle="collapse"]').on('click', function (){
-       //alert($(this).attr('data-bs-target'));
-       let id = $(this).attr('data-bs-target').split('#response-collapse')
-       console.log(id[1])
-   })*/
+
     $('[labelButton = "sendResponse"]').on('click', function () {
         let id = $(this).attr('id').split('buttonCollapse');
-        const controller = '/comment/response/new';
-        //let elementid = 'responseForm'+id;
-       /* console.log(elementid);
-        let element = document.getElementById(elementid);
-        console.log(element);
-        console.log($('#responseForm' + id + '').val());*/
-        let text = $('#responseForm' + id[1] + '').val();
-        newResponse(controller, id[1], text);
+        $('#errorComment').empty();
+        $('#errorComment').prop('hidden', true);
+        if ($('#responseForm' + id[1] + '').val() == ''){
+            $('#errorComment').append('Поле не должно быть пустым!');
+            $('#errorComment').removeAttr('hidden');
+        } else {
+            const controller = '/comment/response/new';
+            let text = $('#responseForm' + id[1] + '').val();
+            newResponse(controller, id[1], text);
+        }
     })
     $('[labelButton = "reportComment"]').on('click', function () {
         let id = $(this).attr('data-bs-whatever');
         currentIdForReport = id;
-        console.log(id);
+        /*console.log(id);*/
     })
     $('[labelButton = "offerReport"]').on('click', function () {
         let id = $(this).attr('data-bs-whatever');
         currentIdForReport = id;
-        console.log(id);
+        /*console.log(id);*/
     })
     $('[labelButton = sendReportComment]').on('click', function () {
-        const controller = '/comment/sendReportComment';
+        $('#errorReportComment').empty();
+        $('#errorReportComment').prop('hidden', true);
         let text = $('#message-text-comment').val();
-        commentReport(controller, text);
+        if(text == '') {
+            $('#errorReportComment').append('Поле не должно быть пустым!');
+            $('#errorReportComment').removeAttr('hidden');
+        } else {
+            const controller = '/comment/sendReportComment';
+            commentReport(controller, text);
+        }
     })
     $('[labelButton = sendReportOffer]').on('click', function () {
-        const controller = '/comment/sendReportOffer';
+        $('#errorReportOffer').empty();
+        $('#errorReportOffer').prop('hidden', true);
         let text = $('#message-text-offer').val();
-        offerReport(controller, text);
+        if(text == ''){
+            $('#errorReportOffer').append('Поле не должно быть пустым!');
+            $('#errorReportOffer').removeAttr('hidden');
+        } else {
+            const controller = '/comment/sendReportOffer';
+            offerReport(controller, text);
+        }
     })
-
-   /* $('[followLink]').on('click', function (){
-        alert($(this).attr('href'))
-    })*/
 });
 
 function offerReport(controller, text)

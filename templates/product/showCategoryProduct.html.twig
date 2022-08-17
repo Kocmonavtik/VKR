@@ -77,7 +77,8 @@
                                     <div class="card-body">
                                         <h5 class="card-title"><a  class="text-decoration-none" href="{{ path('app_product_show', {'id': product.id}) }}">{{ product.name }}</a></h5>
                                         <h5 class="card-title">Средняя оценка: {{ ratingProducts[product.id]|round(1)}}</h5>
-                                        <h5 class="card-title">Лучшая цена: {{ minProductPrice[product.id]|round(2) }}</h5>
+                                        <h5 class="card-title">Средняя цена: {{ medianPrice[product.id]|round(2) }}</h5>
+                                        <h5 class="card-title">Цены: {{ minProductPrice[product.id]|round(2)}} - {{ maxProductPrice[product.id]|round(2)}} </h5>
                                         {% for property in properties[product.id] |keys %}
                                             <p class="card-text">{{ property }}: {{ properties[product.id][property] }}</p>
                                         {% endfor %}

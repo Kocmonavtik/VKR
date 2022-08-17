@@ -33,7 +33,7 @@ class ServiceRepository extends ServiceEntityRepository
         $conection = $this->getEntityManager()->getConnection();
 
         $sql =
-            'SELECT ai.product_id, avg(r.evaluation), min(ai.price) FROM additional_info ai
+            'SELECT ai.product_id, avg(r.evaluation), min(ai.price), max(ai.price) FROM additional_info ai
                left join rating r on ai.id = r.additional_info_id
                group by ai.product_id';
         $stmt = $conection->prepare($sql);

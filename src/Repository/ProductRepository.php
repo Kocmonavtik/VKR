@@ -129,7 +129,10 @@ class ProductRepository extends ServiceEntityRepository
             $builder->groupBy('p.id');
             switch ($sort) {
                 case 'rating':
-                    $builder->orderBy('avg(r.evaluation)', 'DESC');
+                    $builder
+                        ->addSelect('CASE WHEN avg(r.evaluation) IS NULL THEN 1 ELSE 0 END as HIDDEN avg_is_null')
+                        ->addOrderBy('avg_is_null', 'ASC')
+                        ->addOrderBy('avg(r.evaluation)', 'DESC');
                     break;
                 case 'priceUp':
                     $builder->orderBy('min(ai.price)', 'ASC');
@@ -255,6 +258,7 @@ class ProductRepository extends ServiceEntityRepository
     public function sortProductRating($search)
     {
         $builder = $this->createQueryBuilder('p')
+            ->addSelect('CASE WHEN avg(r.evaluation) IS NULL THEN 1 ELSE 0 END as HIDDEN avg_is_null')
             ->leftJoin('p.additionalInfos', 'ai')
             ->leftJoin('ai.ratings', 'r');
         if ($search !== null) {
@@ -262,7 +266,8 @@ class ProductRepository extends ServiceEntityRepository
                 ->setParameter('query', '%' . $search . '%');
         }
             $builder->groupBy('p.id')
-            ->orderBy('avg(r.evaluation)', 'DESC');
+                ->addOrderBy('avg_is_null', 'ASC')
+                ->addOrderBy('avg(r.evaluation)', 'DESC');
         return $builder->getQuery()->getResult();
     }
     public function sortProductMinPrice($search)

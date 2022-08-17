@@ -5,12 +5,65 @@ $(document).ready(function () {
         $('[button = processSource]').each(function () {
             $(this).attr('disabled', true);
         })
+        $('[button = testProcessSource]').each(function () {
+            $(this).attr('disabled', true);
+        })
         $('#Action' + id[1] + '').empty().html('<div class="loader"></div>');
         $('#SourceElement' + id[1] + '').attr('class', 'table-primary');
         $('#StatusSource' + id[1] + '').html('Обрабатывается');
         sourceLoad(controller, id[1]);
     });
+    $('[button = TestProcessSource]').on('click', function () {
+        const controller = '/source/loadTest';
+        let id = $(this).attr('id').split('Test');
+        $('[button = processSource]').each(function () {
+            $(this).attr('disabled', true);
+        })
+        $('[button = testProcessSource]').each(function () {
+            $(this).attr('disabled', true);
+        })
+        $('#Action' + id[1] + '').empty().html('<div class="loader"></div>');
+        $('#SourceElement' + id[1] + '').attr('class', 'table-primary');
+        $('#StatusSource' + id[1] + '').html('Обрабатывается');
+        testSourceLoad(controller, id[1]);
+    });
 });
+
+function testSourceLoad(controller, id)
+{
+    $.ajax({
+        url: controller,
+        type: 'GET',
+        timeout: 1700000,
+        data: {
+            'id': id,
+        },
+        success:
+            function (response) {
+                $('[button = processSource]').each(function () {
+                    $(this).attr('disabled', false);
+                })
+                $('[button = TestProcessSource]').each(function () {
+                    $(this).attr('disabled', false);
+                })
+                //$('#Action' + id + '').empty();
+                if (response.code === 200) {
+                    console.log('Производится обработка Xml файла');
+                } else {
+                    $('#SourceElement' + id + '').attr('class', 'table-danger');
+                    $('#StatusSource' + id + '').html('Ошибка при обработке');
+                }
+            },
+        error:
+            function (jqXHR, status, e) {
+                if (status === 'timeout') {
+                    console.log('Время ожидания истекло');
+                } else {
+                    console.log(status);
+                }
+            }
+    });
+}
 
 function sourceLoad(controller, id)
 {
@@ -24,6 +77,9 @@ function sourceLoad(controller, id)
         success:
             function (response) {
                 $('[button = processSource]').each(function () {
+                    $(this).attr('disabled', false);
+                })
+                $('[button = TestProcessSource]').each(function () {
                     $(this).attr('disabled', false);
                 })
                 //$('#Action' + id + '').empty();

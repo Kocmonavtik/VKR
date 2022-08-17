@@ -54,11 +54,23 @@
                                             <button class="btn btn-info profile-button" id="Source{{ source.id }}"
                                                     button="processSource" type="button" disabled>Обработать
                                             </button>
+                                            <button class="btn btn-warning profile-button" id="Test{{ source.id }}"
+                                                    button="TestProcessSource" type="button" disabled>Тестовая обработка
+                                            </button>
+                                            <button class="btn btn-danger profile-button" id="Reject{{ source.id }}"
+                                                    button="rejectSource" type="button">Отказать
+                                            </button>
                                         </td>
                                     {% else %}
                                         <td id="Action{{ source.id }}">
                                             <button class="btn btn-info profile-button" id="Source{{ source.id }}"
                                                     button="processSource" type="button">Обработать
+                                            </button>
+                                            <button class="btn btn-warning profile-button" id="Test{{ source.id }}"
+                                                    button="TestProcessSource" type="button">Тестовая обработка
+                                            </button>
+                                            <button class="btn btn-danger profile-button" id="Test{{ source.id }}"
+                                                    button="rejectSource" type="button">Отказать
                                             </button>
                                         </td>
                                     {% endif %}
@@ -97,19 +109,23 @@
                                         <div class="loader"></div>
                                     </td>
                                 </tr>
+                            {% elseif source.status == 'testing' %}
+                                <tr class="table-primary" id="SourceElement{{ source.id }}">
+                                    <td>{{ source.id }}</td>
+                                    <td id="UrlSource{{ source.id }}">{{ source.url }}</td>
+                                    <td>{{ source.customer.email }}</td>
+                                    <td>{{ source.store.nameStore }}</td>
+                                    <td id="StatusSource{{ source.id }}">Загружена на тестовую страницу</td>
+                                    <td id="Action{{ source.id }}">
+                                        <button class="btn btn-info profile-button" id="Source{{ source.id }}"
+                                                button="processSource" type="button">Обработать
+                                        </button>
+                                        <button class="btn btn-danger profile-button" id="Test{{ source.id }}"
+                                                button="rejectSource" type="button">Отказать
+                                        </button>
+                                    </td>
+                                </tr>
                             {% endif %}
-                          {#  <tr>
-                                <td>{{ source.id }}</td>
-                                <td>
-                                    <a href="{{ source.url }}">{{ source.url }}</a>
-                                </td>
-                                <td> {{ source.customer.email }}</td>
-                                <td> {{ source.store.nameStore }}</td>
-                                <td>{{ source.status }}</td>
-                                <td>
-                                    <a type="button" class="btn btn-success" href="{{ path('app_source_goods_show', {'id': source.id}) }}">Обработать</a>
-                                </td>
-                            </tr>#}
                         {% else %}
                             <tr>
                                 <td colspan="6">no records found</td>
@@ -117,7 +133,7 @@
                         {% endfor %}
                         </tbody>
                     </table>
-                    {#<a type="button" class=" btn btn-info" href="{{ path('app_source_goods_new') }}">Создать</a>#}
+                    <a type="button" class=" btn btn-primary" href="{{ path('app_source_goods_test') }}">Страница результата обработки</a>
                 </div>
             </div>
         </div>

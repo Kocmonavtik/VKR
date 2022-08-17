@@ -1,0 +1,28 @@
+<yml_catalog date="2022-06-15 09:56:14">
+    <shop>
+        <name>Название магазина</name>
+        <categories>
+            <category id="1">Аксессуары</category>
+            <category id="2" parentId="1">Ремни</category>
+            <category id="3" parentId="2">Ремни Женские</category>
+            <category id="4" parentId="2">Ремни Мужские</category>
+            <category>...</category>
+        </categories>
+        <offers>
+            <offer id="1" productId="12">
+                <picture>http://testShop.ru/upload/pictures/ff55gg55g.jpg</picture>
+                <url>http://testShop.ru/catalog/belts/belt</url>
+                <price>1150.00</price>
+                <categoryId>3</categoryId>
+                <name>Коричневый ремень</name>
+                <xmlId>1</xmlId>
+                <brand>RndBrand</brand>
+                <param name="article">177-77-хх</param>
+                <param name="Цвет" code="color">Кориченвый</param>
+                <param name="Размер" code="size">L</param>
+                <param>...</param>
+            </offer>
+            <offer>...</offer>
+        </offers>
+    </shop>
+</yml_catalog>

@@ -1,0 +1,119 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Product index{% endblock %}
+
+{% block body %}
+    <div class="container mt-2">
+        <h2 class="text-center">Магазин:
+          {% for item in store %}
+              {{ item['store'] }}
+          {% endfor %}
+        </h2>
+        <div class="row align-items-start">
+            <div class="col">
+                <p>Категории</p>
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        {% for category in categoriesTest %}
+                            <p>{{ category['category'] }}</p>
+                        {% endfor %}
+                    </li>
+                </ul>
+            </div>
+
+            <div class="col">
+                <p>Производители</p>
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        {% for manufacturer in manufacturers %}
+                            <p>{{ manufacturer['manufacturer'] }}</p>
+                        {% endfor %}
+                    </li>
+                </ul>
+            </div>
+
+            {% for property in properties|keys %}
+                <div class="col">
+                    <p> {{ property }}</p>
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            {% for value in properties[property] %}
+                                <p>{{ value }}</p>
+                            {% endfor %}
+                        </li>
+                    </ul>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="d-flex flex-column p-2 align-items-center" id="productList" >
+            {% if pagination is not empty %}
+
+                  {% for product in pagination %}
+                      <div class="card mb-3" style="max-width: 840px;">
+                        <div class="row g-0">
+                            <div class="col-md-4">
+                                <div id="carousel{{ product.id }}" class="carousel slide" data-bs-ride="carousel">
+                                    <div class="carousel-indicators">
+                                        {% for items in product.image %}
+                                            {% if loop.first %}
+                                                <button type="button" data-bs-target="#carousel{{ product.id }}" data-bs-slide-to="{{ loop.index }}" class="active" aria-current="true" aria-label="Slide {{ loop.index }}"></button>
+                                            {% else %}
+                                                <button type="button" data-bs-target="#carousel{{ product.id }}" data-bs-slide-to="{{ loop.index }}" aria-label="Slide {{ loop.index }}"></button>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <div class="carousel-inner">
+                                        {% for items in product.image %}
+                                            {% if loop.first %}
+                                                <div class="carousel-item active">
+                                                    <a href="{{ path('app_product_show', {'id': product.id}) }}"><img src="{{ asset('upload/test/' ~ items) }}" class="img-fluid rounded-start" alt="..."></a>
+                                                </div>
+                                            {% else %}
+                                                <div class="carousel-item">
+                                                    <a href="{{ path('app_product_show', {'id': product.id}) }}"><img src="{{ asset('upload/test/' ~ items) }}" class="img-fluid rounded-start" alt="..."></a>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <button class="carousel-control-prev" type="button" data-bs-target="#carousel{{ product.id }}" data-bs-slide="prev">
+                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Previous</span>
+                                    </button>
+                                    <button class="carousel-control-next" type="button" data-bs-target="#carousel{{ product.id }}" data-bs-slide="next">
+                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Next</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="card-body">
+                                    <h5 class="card-title"><a  class="text-decoration-none" href="{{ path('app_product_show', {'id': product.id}) }}">{{ product.name }}</a></h5>
+                                    <h5 class="card-title">Цена: {{ product.price }}</h5>
+                                    <p class="card-title">Категория: {{ product.category }}</p>
+                                    <p class="card-title">Производитель: {{ product.manufacturer }}</p>
+                                    {% for property in product.property %}
+                                        <span class="card-text"> {{ property }} </span>
+                                    {% endfor %}
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <a type="button" class="btn btn-warning" href="{{ product.url }}">В магазин</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div >
+                    <p class="text-center text-danger">Товары не найдены!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="text-center d-flex justify-content-center">
+        {{ knp_pagination_render(pagination)}}
+        {#   '@KnpPaginator/Pagination/bootstrap_v5_pagination.html.twig'#}
+    </div>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+{% endblock %}

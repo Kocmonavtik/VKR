@@ -48,7 +48,7 @@ class AppFixtures extends Fixture
     {
         //Создание пользователя
         $user = new Users();
-        $user->setEmail('testEmail@emal.com');
+        $user->setEmail('testEmail@gmail.com');
         $user->setPassword($this->passwordHasher->hashPassword($user, '123456'));
         $user->setRoles(['ROLE_CLIENT']);
         $user->setAvatar('avatar/img.png');
@@ -58,7 +58,7 @@ class AppFixtures extends Fixture
         $manager->flush();
 
         $user1 = new Users();
-        $user1->setEmail('test1Email@emal.com');
+        $user1->setEmail('test1Email@gmail.com');
         $user1->setPassword($this->passwordHasher->hashPassword($user1, '123456'));
         $user1->setRoles(['ROLE_USER']);
         $user1->setAvatar('avatar/img.png');
@@ -68,7 +68,7 @@ class AppFixtures extends Fixture
         $manager->flush();
 
         $user2 = new Users();
-        $user2->setEmail('test2Email@emal.com');
+        $user2->setEmail('test2Email@gmail.com');
         $user2->setPassword($this->passwordHasher->hashPassword($user2, '123456'));
         $user2->setRoles(['ROLE_USER']);
         $user2->setAvatar('avatar/img.png');
@@ -79,7 +79,7 @@ class AppFixtures extends Fixture
 
 
         $user3 = new Users();
-        $user3->setEmail('test3Email@emal.com');
+        $user3->setEmail('test3Email@gmail.com');
         $user3->setPassword($this->passwordHasher->hashPassword($user3, '123456'));
         $user3->setRoles(['ROLE_USER']);
         $user3->setAvatar('avatar/img.png');
@@ -90,7 +90,7 @@ class AppFixtures extends Fixture
 
 
         $user4 = new Users();
-        $user4->setEmail('test4Email@emal.com');
+        $user4->setEmail('test4Email@gmail.com');
         $user4->setPassword($this->passwordHasher->hashPassword($user4, '123456'));
         $user4->setRoles(['ROLE_USER']);
         $user4->setAvatar('avatar/img.png');
@@ -100,7 +100,7 @@ class AppFixtures extends Fixture
         $manager->flush();
 
         $user5 = new Users();
-        $user5->setEmail('test5Email@emal.com');
+        $user5->setEmail('test5Email@gmail.com');
         $user5->setPassword($this->passwordHasher->hashPassword($user5, '123456'));
         $user5->setRoles(['ROLE_USER']);
         $user5->setAvatar('avatar/img.png');
@@ -110,7 +110,7 @@ class AppFixtures extends Fixture
         $manager->flush();
 
         $user6 = new Users();
-        $user6->setEmail('test6Email@emal.com');
+        $user6->setEmail('test6Email@gmail.com');
         $user6->setPassword($this->passwordHasher->hashPassword($user6, '123456'));
         $user6->setRoles(['ROLE_USER']);
         $user6->setAvatar('avatar/img.png');
@@ -120,7 +120,7 @@ class AppFixtures extends Fixture
         $manager->flush();
 
         $adminUser = new Users();
-        $adminUser->setEmail('adminEmail@emal.com');
+        $adminUser->setEmail('adminEmail@gmail.com');
         $adminUser->setPassword($this->passwordHasher->hashPassword($adminUser, '123456'));
         $adminUser->setRoles(['ROLE_ADMIN']);
         $adminUser->setAvatar('avatar/img.png');
@@ -212,10 +212,11 @@ class AppFixtures extends Fixture
         $xmlOffers = $simpleXml->shop->offers->offer;
         $productCount = 0;
         $products = [];
+        $propertyProductMas = [];
         $manufacturers = [];
         $additionalInfos = [];
         //$properties = [];
-        $Property[] = new PropertyProduct();
+        $Property = [];
         $output->writeln('offers processing...');
         $progresBar = new ProgressBar($output, min(count($xmlOffers), self::OFFERS_COUNT));
 
@@ -234,7 +235,9 @@ class AppFixtures extends Fixture
             $productXmlId = (string) $xmlOffer->attributes()->productId;
             $categoryXmlId = (string) $xmlOffer->categoryId;
             $vendorXmlName = (string) $xmlOffer->vendor;
-            //$paramXml = (string) $xmlOffer->param;
+            if (empty($vendorXmlName)) {
+                $vendorXmlName = (string)$xmlOffer->brand;
+            }
             if (empty($vendorXmlName)) {
                 $vendorXmlName = 'Не брендированный';
             }
@@ -272,29 +275,64 @@ class AppFixtures extends Fixture
                 foreach ($xmlOffer->param as $xmlParam) {
                     /*$stack[(string) $xmlParam->attributes()->name] = (string)$xmlParam;*/
                     //if (!in_array((string)$xmlParam->attributes()->name, $properties, false)) {
-                    if (empty($Property[(string)$xmlParam->attributes()->name])) {
+                    $name = (string)$xmlParam->attributes()->name;
+                    if (empty($Property[$name])) {
                         //$properties[(string)$xmlParam->attributes()->name] = (string)$xmlParam->attributes()->name;
                         //$properties[(string)$xmlParam->attributes()->name][1] = (string)$xmlParam;
                         $item = new \App\Entity\Property();
                         $item->setName((string)$xmlParam->attributes()->name);
-                        $Property[(string)$xmlParam->attributes()->name] = $item;
+                        $Property[$name] = $item;
                         $manager->persist($item);
                         $propertyProduct = new PropertyProduct();
                         $propertyProduct->setProduct($product);
                         $propertyProduct->setProperty($item);
                         $propertyProduct->setValue((string)$xmlParam);
                         $manager->persist($propertyProduct);
+                        $propertyProductMas[$product->getId()][$name][(string)$xmlParam] = $propertyProduct;
                     } else {
                         $propertyProduct = new PropertyProduct();
                         $propertyProduct->setProduct($product);
                         $propertyProduct->setProperty($Property[(string)$xmlParam->attributes()->name]);
                         $propertyProduct->setValue((string)$xmlParam);
                         $manager->persist($propertyProduct);
+                        $propertyProductMas[$product->getId()][$name][(string)$xmlParam] = $propertyProduct;
                     }
                 }
             } else {
                 $product = $products[$productXmlId][0];
                 $products[$productXmlId][1]++;
+                foreach ($xmlOffer->param as $xmlParam) {
+                    $name = (string) $xmlParam->attributes()->name;
+                    if (empty($Property[$name])) {
+                        $item = new \App\Entity\Property();
+                        $item->setName($name);
+                        $Property[$name] = $item;
+                        $manager->persist($item);
+
+                        //запись значений характеристик
+                        $value = (string)$xmlParam;
+
+                        if (empty($propertyProductMas[$product->getId()][$name][$value])) {
+                            $propertyProduct = new PropertyProduct();
+                            $propertyProduct->setProduct($product)
+                                ->setValue($value)
+                                ->setProperty($Property[$name]);
+                            $manager->persist($propertyProduct);
+                            $propertyProductMas[$product->getId()][$name][$value] = $propertyProduct;
+                        }
+                    } else {
+                        //запись значений характеристик
+                        $value = (string)$xmlParam;
+                        if (empty($propertyProductMas[$product->getId()][$name][$value])) {
+                            $propertyProduct = new PropertyProduct();
+                            $propertyProduct->setProduct($product)
+                                ->setValue($value)
+                                ->setProperty($Property[$name]);
+                            $manager->persist($propertyProduct);
+                            $propertyProductMas[$product->getId()][$name][$value] = $propertyProduct;
+                        }
+                    }
+                }
             }
             $additionalInfo = new AdditionalInfo();
             $additionalInfo->setUrl((string)$xmlOffer->url);

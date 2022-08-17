@@ -4,6 +4,7 @@
 @import "~bootstrap-star-rating/css/star-rating.css";
 @import "~bootstrap-star-rating/themes/krajee-svg/theme.css";
 @import "~bootstrap/scss/_toasts";
+@import "~bootstrap/scss/_utilities";
 
 .loader {
   border: 16px solid #f3f3f3;
@@ -17,4 +18,11 @@
 @keyframes spin {
   0% {transform: rotate(0deg);}
   100% {transform: rotate(360deg);}
+}
+.list-group{
+  max-height: 300px;
+  margin-bottom: 5px;
+  overflow:scroll;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }

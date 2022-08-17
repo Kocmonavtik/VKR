@@ -138,7 +138,8 @@ function buildHtml(response, page)
             let innerInfoProduct =
                 '<h5 class="card-title"><a  class="text-decoration-none" href="' + link + '">' + response.pagination[i].name + '</a></h5>\n' +
                 '<h5 class="card-title">Рейтинг: ' + Number(response.ratingProducts[id]).toFixed(1) + '</h5>\n' +
-                '<h5 class="card-title">Лучшая цена: ' + Number(response.productMinValue[id]).toFixed(0) + '</h5>\n';
+                '<h5 class="card-title">Средняя цена: ' + Number(response.medianPrice[id]).toFixed(0) + '</h5>\n' +
+                '<h5 class="card-title">Цены: ' + Number(response.productMinValue[id]).toFixed(0) + ' - ' + Number(response.productMaxValue[id]).toFixed(0) + '</h5>\n';
             let arrayProperties = '';
             for (var key in response.pagination[i].properties) {
                 arrayProperties += '<p class="card-text">' + key + ': ' + response.pagination[i].properties[key] + '</p>'

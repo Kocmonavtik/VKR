@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\AdditionalInfo;
 use App\Entity\Category;
 use App\Entity\Comment;
 use App\Entity\Product;
@@ -234,6 +235,7 @@ class ProductController extends AbstractController
         Category $category,
         Request $request
     ) {
+        $manager = $this->doctrine->getManager();
         $isFilters = false;
         $items = $this->searchFunctions->getCategories();
 
@@ -246,9 +248,11 @@ class ProductController extends AbstractController
         $avgRatings = $this->serviceRepository->getAverageRatingAndMinPrice();
         $ratingProducts = [];
         $minPrices = [];
+        $maxPrices = [];
         foreach ($avgRatings as $avgRating) {
             $ratingProducts[$avgRating['product_id']] = $avgRating['avg'];
             $minPrices[$avgRating['product_id']] = $avgRating['min'];
+            $maxPrices[$avgRating['product_id']] = $avgRating['max'];
         }
 
         $parentCategories = $this->categoryRepository->findBy(['parent' => $category]);
@@ -271,13 +275,13 @@ class ProductController extends AbstractController
                     array_push($products, $item);
                 }
             }
-        } else{
+        } else {
             $products = $category->getProducts();
         }
         $manufacturers = [];
         $properties = [];
         $distinctProperties = [];
-
+        $medianPrice = [];
         foreach ($products as $product) {
             $properties[$product->getId()] = $product->getPropertyProducts();
             $nameManufacturer = $product->getManufacturer()->getName();
@@ -290,6 +294,23 @@ class ProductController extends AbstractController
                 if (empty($distinctProperties[$name][$value])) {
                     $distinctProperties[$name][$value] = $value;
                 }
+            }
+            $offers = $manager->getRepository(AdditionalInfo::class)
+                ->findBy(
+                    [
+                        'product' => $product,
+                        'status' => 'complete'
+                    ],
+                    ['price' => 'ASC'],
+                );
+            $id = $product->getId();
+            $count = count($offers);
+            if ($count % 2 === 0) {
+                $medianOffer = array_slice($offers, ($count - 2) / 2, 2);
+                $medianPrice[$id] = ($medianOffer[0]->getPrice() + $medianOffer[1]->getPrice()) / 2 ;
+            } else {
+                $medianOffer = array_slice($offers, ($count - 1) / 2, 1);
+                $medianPrice[$id] = $medianOffer[0]->getPrice();
             }
         }
 
@@ -340,6 +361,8 @@ class ProductController extends AbstractController
             'parentCategories' => $parentCategories,
             'ratingProducts' => $ratingProducts,
             'minProductPrice' => $minPrices,
+            'maxProductPrice' => $maxPrices,
+            'medianPrice' => $medianPrice,
             'form' => $form->createView(),
             'Filters' => $isFilters,
             'category' => $category,

@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\AdditionalInfo;
 use App\Entity\Product;
 use App\Entity\Statistic;
 use App\Model\ProductDto;
@@ -116,6 +117,7 @@ class AboutController extends AbstractController
      */
     public function getProductsWithFilter(Request $request): JsonResponse
     {
+        $manager = $this->doctrine->getManager();
         $colElementsPerPage = 5;
         if (!empty($request->query->get('page'))) {
             $page = $request->query->get('page');
@@ -146,17 +148,40 @@ class AboutController extends AbstractController
         }
 
         $dtoProducts = [];
+        $medianPrice = [];
+        $minPrices = [];
+        $maxPrices = [];
         foreach ($products as $product) {
             $productDto = new ProductDto();
             $dtoProducts[] = $productDto->dtoFromProduct($product);
+            $offers = $manager->getRepository(AdditionalInfo::class)
+                ->findBy(
+                    [
+                        'product' => $product,
+                        'status' => 'complete'
+                    ],
+                    ['price' => 'ASC'],
+                );
+            $id = $product->getId();
+            $count = count($offers);
+            if ($count % 2 === 0) {
+                $medianOffer = array_slice($offers, ($count - 2) / 2, 2);
+                $medianPrice[$id] = ($medianOffer[0]->getPrice() + $medianOffer[1]->getPrice()) / 2 ;
+            } else {
+                $medianOffer = array_slice($offers, ($count - 1) / 2, 1);
+                $medianPrice[$id] = $medianOffer[0]->getPrice();
+            }
+           /* $minPrices[$id] = $offers[0]->getPrice();
+            $maxPrices[$id] = end($offers)->getPrice();*/
         }
 
         $avgRatings = $this->serviceRepository->getAverageRatingAndMinPrice();
         $ratingProducts = [];
-        $minPrices = [];
+        //$minPrices = [];
         foreach ($avgRatings as $avgRating) {
             $ratingProducts[$avgRating['product_id']] = $avgRating['avg'];
             $minPrices[$avgRating['product_id']] = $avgRating['min'];
+            $maxPrices[$avgRating['product_id']] = $avgRating['max'];
         }
 
 
@@ -171,6 +196,8 @@ class AboutController extends AbstractController
             'pagination' => $pagination,
             'ratingProducts' => $ratingProducts,
             'productMinValue' => $minPrices,
+            'productMaxValue' => $maxPrices,
+            'medianPrice' => $medianPrice,
             'filter' => $filter,
             'page' => $page,
             'colPages' => $colPages
