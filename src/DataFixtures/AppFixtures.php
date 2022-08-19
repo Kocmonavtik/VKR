@@ -186,7 +186,7 @@ class AppFixtures extends Fixture
         $xmlCategories = $simpleXml->shop->categories->category;
         $categories = [];
         foreach ($xmlCategories as $section) {
-            if ((int) $section->attributes()->id === 9 || (int) $section->attributes()->id === 8) {
+            if ((int) $section->attributes()->id === 9 /*|| (int) $section->attributes()->id === 8*/) {
                 continue;
             }
             $category = new Category();
@@ -228,7 +228,7 @@ class AppFixtures extends Fixture
             if (!$xmlOffer->param) {
                 continue;
             }
-            if ((int) $xmlOffer->categoryId === 9 || (int) $xmlOffer->categoryId === 8) {
+            if ((int) $xmlOffer->categoryId === 9 /*|| (int) $xmlOffer->categoryId === 8*/) {
                 continue;
             }
             $offerXmlId = (string) $xmlOffer->attributes()->id;
